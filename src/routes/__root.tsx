@@ -5,6 +5,16 @@ import { TanStackDevtools } from "@tanstack/react-devtools"
 import appCss from "../styles.css?url"
 
 export const Route = createRootRoute({
+  notFoundComponent: () => (
+    <div className="flex min-h-svh items-center justify-center p-6">
+      <div className="text-center">
+        <p className="text-sm text-muted-foreground">[404] page not found</p>
+        <a href="/" className="mt-2 inline-block text-xs text-primary hover:underline">
+          go home
+        </a>
+      </div>
+    </div>
+  ),
   head: () => ({
     meta: [
       {
@@ -15,7 +25,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "TanStack Start Starter",
+        title: "dgit",
       },
     ],
     links: [
@@ -24,13 +34,18 @@ export const Route = createRootRoute({
         href: appCss,
       },
     ],
+    scripts: [
+      {
+        children: `(function(){try{var t=localStorage.getItem("dgit-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("dark")}catch(e){}})()`,
+      },
+    ],
   }),
   shellComponent: RootDocument,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
