@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react"
 import type { ArchiveFormat } from "@/lib/archive"
 import type { CloneProgress } from "@/lib/git"
+import type { ParsedRepo } from "@/lib/parse-url"
 import {
   createTarGz,
   createZip,
@@ -21,6 +22,12 @@ export type CloneStatus = {
 export type CloneDownloadOptions = {
   shallow: boolean
   format: ArchiveFormat
+}
+
+export type SubpathPrompt = {
+  subpath: string
+  repoName: string
+  resolve: (choice: "subfolder" | "full") => void
 }
 
 function friendlyError(err: unknown): string {
@@ -54,20 +61,27 @@ export function useClone() {
     error: null,
     repoName: null,
   })
+  const [subpathPrompt, setSubpathPrompt] = useState<SubpathPrompt | null>(null)
   const abortRef = useRef(false)
 
-  const startDownload = useCallback(
-    async (rawUrl: string, options: CloneDownloadOptions) => {
+  const executeDownload = useCallback(
+    async (
+      parsed: ParsedRepo,
+      options: CloneDownloadOptions,
+      subpath: string | null,
+    ) => {
       abortRef.current = false
-
       setStatus({ state: "cloning", progress: null, error: null, repoName: null })
 
       try {
-        const { url, repoName } = parseRepoUrl(rawUrl)
+        const downloadName = subpath
+          ? subpath.split("/").pop() ?? parsed.repoName
+          : parsed.repoName
 
         const files = await cloneAndCollect({
-          url,
+          url: parsed.url,
           shallow: options.shallow,
+          subpath,
           onProgress(progress) {
             if (!abortRef.current) {
               setStatus((prev) => ({ ...prev, progress }))
@@ -78,7 +92,7 @@ export function useClone() {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- ref can be mutated concurrently
         if (abortRef.current) return
 
-        setStatus({ state: "archiving", progress: null, error: null, repoName })
+        setStatus({ state: "archiving", progress: null, error: null, repoName: downloadName })
 
         let data: Uint8Array
         let filename: string
@@ -86,16 +100,16 @@ export function useClone() {
 
         if (options.format === "tar.gz") {
           data = createTarGz(files)
-          filename = `${repoName}.tar.gz`
+          filename = `${downloadName}.tar.gz`
           mimeType = "application/gzip"
         } else {
           data = createZip(files)
-          filename = `${repoName}.zip`
+          filename = `${downloadName}.zip`
           mimeType = "application/zip"
         }
 
         triggerDownload(data, filename, mimeType)
-        setStatus({ state: "done", progress: null, error: null, repoName })
+        setStatus({ state: "done", progress: null, error: null, repoName: downloadName })
 
         setTimeout(() => {
           if (!abortRef.current) {
@@ -114,10 +128,35 @@ export function useClone() {
     [],
   )
 
+  const startDownload = useCallback(
+    (rawUrl: string, options: CloneDownloadOptions) => {
+      const parsed = parseRepoUrl(rawUrl)
+
+      if (parsed.subpath) {
+        setSubpathPrompt({
+          subpath: parsed.subpath,
+          repoName: parsed.repoName,
+          resolve(choice) {
+            setSubpathPrompt(null)
+            executeDownload(
+              parsed,
+              options,
+              choice === "subfolder" ? parsed.subpath : null,
+            )
+          },
+        })
+      } else {
+        executeDownload(parsed, options, null)
+      }
+    },
+    [executeDownload],
+  )
+
   const reset = useCallback(() => {
     abortRef.current = true
+    setSubpathPrompt(null)
     setStatus({ state: "idle", progress: null, error: null, repoName: null })
   }, [])
 
-  return { status, startDownload, reset }
+  return { status, subpathPrompt, startDownload, reset }
 }

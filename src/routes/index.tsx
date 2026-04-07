@@ -2,6 +2,16 @@ import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import { ChevronDown, ClipboardPaste, Download, Moon, Sun, X } from "lucide-react"
 import type { ArchiveFormat } from "@/lib/archive"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,7 +31,7 @@ function App() {
   const [url, setUrl] = useState("")
   const [shallow, setShallow] = useState(true)
   const [format, setFormat] = useState<ArchiveFormat>("zip")
-  const { status, startDownload, reset } = useClone()
+  const { status, subpathPrompt, startDownload, reset } = useClone()
   const { theme, toggleTheme } = useTheme()
 
   const isActive = status.state === "cloning" || status.state === "archiving"
@@ -168,6 +178,36 @@ function App() {
       <div className="relative min-h-0 flex-1 overflow-hidden md:h-auto">
         <Starfield hyperspace={isActive} />
       </div>
+
+      {/* Subfolder prompt */}
+      <AlertDialog open={subpathPrompt !== null}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Subfolder detected</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your URL points to{" "}
+              <span className="font-mono text-foreground">
+                {subpathPrompt?.subpath}
+              </span>{" "}
+              in{" "}
+              <span className="font-mono text-foreground">
+                {subpathPrompt?.repoName}
+              </span>
+              . Download just this folder, or the entire repository?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => subpathPrompt?.resolve("full")}>
+              Full repository
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => subpathPrompt?.resolve("subfolder")}
+            >
+              Just /{subpathPrompt?.subpath}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

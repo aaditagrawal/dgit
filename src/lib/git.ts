@@ -7,6 +7,7 @@ export type CloneProgress = {
 export type CloneOptions = {
   url: string
   shallow: boolean
+  subpath?: string | null
   onProgress?: (progress: CloneProgress) => void
 }
 
@@ -58,7 +59,19 @@ export async function cloneAndCollect(
     })
 
     const files = new Map<string, Uint8Array>()
-    await walkFs(pfs, CLONE_DIR, CLONE_DIR, files)
+    const walkRoot = options.subpath
+      ? CLONE_DIR + "/" + options.subpath
+      : CLONE_DIR
+
+    try {
+      await pfs.stat(walkRoot)
+    } catch {
+      throw new Error(
+        `Path "${options.subpath}" not found in the repository`,
+      )
+    }
+
+    await walkFs(pfs, walkRoot, walkRoot, files)
     return files
   } finally {
     fs.init(fsName, { wipe: true })

@@ -1,7 +1,18 @@
 export type ParsedRepo = {
   url: string
   repoName: string
+  subpath: string | null
 }
+
+// Patterns for tree/blob paths across git hosts
+// GitHub:    /user/repo/tree/branch/path
+// GitLab:    /user/repo/-/tree/branch/path
+// Bitbucket: /user/repo/src/branch/path
+const TREE_PATTERNS = [
+  /^\/([^/]+\/[^/]+)\/(?:tree|blob)\/[^/]+\/(.+)/,        // GitHub
+  /^\/([^/]+\/[^/]+)\/-\/(?:tree|blob)\/[^/]+\/(.+)/,      // GitLab
+  /^\/([^/]+\/[^/]+)\/src\/[^/]+\/(.+)/,                    // Bitbucket
+]
 
 export function parseRepoUrl(input: string): ParsedRepo {
   let url = input.trim()
@@ -10,7 +21,6 @@ export function parseRepoUrl(input: string): ParsedRepo {
     throw new Error("Please enter a repository URL")
   }
 
-  // Add protocol if missing
   if (!url.startsWith("http://") && !url.startsWith("https://")) {
     url = "https://" + url
   }
@@ -26,11 +36,29 @@ export function parseRepoUrl(input: string): ParsedRepo {
     throw new Error("Invalid URL: missing hostname")
   }
 
-  // Extract repo name from path
-  const pathParts = parsed.pathname
+  // Try to extract subpath from tree/blob URLs
+  let subpath: string | null = null
+  let repoPath: string | null = null
+
+  for (const pattern of TREE_PATTERNS) {
+    const match = parsed.pathname.match(pattern)
+    if (match) {
+      repoPath = match[1]
+      subpath = match[2].replace(/\/$/, "")
+      break
+    }
+  }
+
+  // Build the clean repo URL
+  if (repoPath) {
+    url = `${parsed.protocol}//${parsed.hostname}/${repoPath}`
+  }
+
+  const pathParts = (repoPath ?? parsed.pathname)
     .replace(/\.git$/, "")
     .split("/")
     .filter(Boolean)
+
   if (pathParts.length < 2) {
     throw new Error(
       "Invalid repository URL. Expected format: https://github.com/user/repo",
@@ -39,10 +67,9 @@ export function parseRepoUrl(input: string): ParsedRepo {
 
   const repoName = pathParts[pathParts.length - 1]
 
-  // Ensure URL ends with .git for isomorphic-git
   if (!url.endsWith(".git")) {
     url = url.replace(/\/$/, "") + ".git"
   }
 
-  return { url, repoName }
+  return { url, repoName, subpath }
 }
