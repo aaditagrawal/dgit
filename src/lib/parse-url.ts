@@ -44,7 +44,7 @@ export function parseRepoUrl(input: string): ParsedRepo {
     const match = parsed.pathname.match(pattern)
     if (match) {
       repoPath = match[1]
-      subpath = match[2].replace(/\/$/, "")
+      subpath = decodeURIComponent(match[2].replace(/\/$/, ""))
       break
     }
   }

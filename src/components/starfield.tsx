@@ -35,7 +35,7 @@ export function Starfield({ hyperspace }: StarfieldProps) {
       const dpr = window.devicePixelRatio || 1
       canvas.width = canvas.offsetWidth * dpr
       canvas.height = canvas.offsetHeight * dpr
-      ctx!.scale(dpr, dpr)
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
 
     function resetStar(star: Star) {

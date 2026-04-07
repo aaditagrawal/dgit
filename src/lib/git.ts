@@ -11,7 +11,7 @@ export type CloneOptions = {
   onProgress?: (progress: CloneProgress) => void
 }
 
-const CORS_PROXY = "https://cors.isomorphic-git.org"
+const CORS_PROXY = "https://dgit-cors-proxy.spanner.workers.dev"
 const CLONE_DIR = "/repo"
 
 export async function cloneAndCollect(

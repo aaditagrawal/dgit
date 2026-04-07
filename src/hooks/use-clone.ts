@@ -40,7 +40,11 @@ function friendlyError(err: unknown): string {
     message.includes("CORS") ||
     message.includes("cors")
   ) {
-    return "Network error — the CORS proxy (cors.isomorphic-git.org) may be down or rate-limited. Try again in a moment."
+    return "Network error — the CORS proxy may be down or rate-limited. Try again in a moment."
+  }
+
+  if (message.includes("Path") && message.includes("not found in the repository")) {
+    return message
   }
 
   if (message.includes("404") || message.includes("not found")) {
