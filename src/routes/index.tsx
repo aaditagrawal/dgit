@@ -184,7 +184,7 @@ function App() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Subfolder detected</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="break-all">
               Your URL points to{" "}
               <span className="font-mono text-foreground">
                 {subpathPrompt?.subpath}
@@ -201,9 +201,12 @@ function App() {
               Full repository
             </AlertDialogCancel>
             <AlertDialogAction
+              className="min-w-0"
               onClick={() => subpathPrompt?.resolve("subfolder")}
             >
-              Just /{subpathPrompt?.subpath}
+              <span className="truncate">
+                Just /{subpathPrompt?.subpath}
+              </span>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
