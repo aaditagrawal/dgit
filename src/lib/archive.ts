@@ -1,4 +1,4 @@
-import { zipSync, gzipSync } from "fflate"
+import { gzipSync, zipSync } from "fflate"
 
 export type ArchiveFormat = "zip" | "tar.gz"
 
@@ -18,7 +18,7 @@ export function createTarGz(files: Map<string, Uint8Array>): Uint8Array {
 export function triggerDownload(
   data: Uint8Array,
   filename: string,
-  mimeType: string
+  mimeType: string,
 ): void {
   const blob = new Blob([new Uint8Array(data)], { type: mimeType })
   const url = URL.createObjectURL(blob)
@@ -33,7 +33,7 @@ export function triggerDownload(
 
 // POSIX tar format encoder
 function createTar(files: Map<string, Uint8Array>): Uint8Array {
-  const blocks: Uint8Array[] = []
+  const blocks: Array<Uint8Array> = []
 
   for (const [path, data] of files) {
     const header = new Uint8Array(512)
@@ -71,7 +71,6 @@ function createTar(files: Map<string, Uint8Array>): Uint8Array {
     header.set(encoder.encode("00"), 263)
 
     // Compute checksum: sum of all bytes with checksum field as spaces
-    // First fill checksum field (148-155) with spaces
     for (let i = 148; i < 156; i++) {
       header[i] = 32 // space
     }

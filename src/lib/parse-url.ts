@@ -27,10 +27,13 @@ export function parseRepoUrl(input: string): ParsedRepo {
   }
 
   // Extract repo name from path
-  const pathParts = parsed.pathname.replace(/\.git$/, "").split("/").filter(Boolean)
+  const pathParts = parsed.pathname
+    .replace(/\.git$/, "")
+    .split("/")
+    .filter(Boolean)
   if (pathParts.length < 2) {
     throw new Error(
-      "Invalid repository URL. Expected format: https://github.com/user/repo"
+      "Invalid repository URL. Expected format: https://github.com/user/repo",
     )
   }
 

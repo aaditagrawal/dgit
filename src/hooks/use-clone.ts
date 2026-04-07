@@ -1,12 +1,13 @@
-import { useState, useCallback, useRef } from "react"
-import { parseRepoUrl } from "@/lib/parse-url"
-import { cloneAndCollect, type CloneProgress } from "@/lib/git"
+import { useCallback, useRef, useState } from "react"
+import type { ArchiveFormat } from "@/lib/archive"
+import type { CloneProgress } from "@/lib/git"
 import {
-  createZip,
   createTarGz,
+  createZip,
   triggerDownload,
-  type ArchiveFormat,
 } from "@/lib/archive"
+import { cloneAndCollect } from "@/lib/git"
+import { parseRepoUrl } from "@/lib/parse-url"
 
 export type CloneState = "idle" | "cloning" | "archiving" | "done" | "error"
 
@@ -14,6 +15,7 @@ export type CloneStatus = {
   state: CloneState
   progress: CloneProgress | null
   error: string | null
+  repoName: string | null
 }
 
 export type CloneDownloadOptions = {
@@ -21,11 +23,36 @@ export type CloneDownloadOptions = {
   format: ArchiveFormat
 }
 
+function friendlyError(err: unknown): string {
+  const message =
+    err instanceof Error ? err.message : "An unknown error occurred"
+
+  if (
+    message.includes("Failed to fetch") ||
+    message.includes("NetworkError") ||
+    message.includes("CORS") ||
+    message.includes("cors")
+  ) {
+    return "Network error — the CORS proxy (cors.isomorphic-git.org) may be down or rate-limited. Try again in a moment."
+  }
+
+  if (message.includes("404") || message.includes("not found")) {
+    return "Repository not found. Make sure the URL is correct and the repo is public."
+  }
+
+  if (message.includes("401") || message.includes("403")) {
+    return "This repository requires authentication. dgit only supports public repositories."
+  }
+
+  return message
+}
+
 export function useClone() {
   const [status, setStatus] = useState<CloneStatus>({
     state: "idle",
     progress: null,
     error: null,
+    repoName: null,
   })
   const abortRef = useRef(false)
 
@@ -33,7 +60,7 @@ export function useClone() {
     async (rawUrl: string, options: CloneDownloadOptions) => {
       abortRef.current = false
 
-      setStatus({ state: "cloning", progress: null, error: null })
+      setStatus({ state: "cloning", progress: null, error: null, repoName: null })
 
       try {
         const { url, repoName } = parseRepoUrl(rawUrl)
@@ -48,9 +75,10 @@ export function useClone() {
           },
         })
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- ref can be mutated concurrently
         if (abortRef.current) return
 
-        setStatus({ state: "archiving", progress: null, error: null })
+        setStatus({ state: "archiving", progress: null, error: null, repoName })
 
         let data: Uint8Array
         let filename: string
@@ -67,29 +95,28 @@ export function useClone() {
         }
 
         triggerDownload(data, filename, mimeType)
+        setStatus({ state: "done", progress: null, error: null, repoName })
 
-        setStatus({ state: "done", progress: null, error: null })
-
-        // Reset to idle after a moment
         setTimeout(() => {
           if (!abortRef.current) {
-            setStatus({ state: "idle", progress: null, error: null })
+            setStatus({ state: "idle", progress: null, error: null, repoName: null })
           }
-        }, 3000)
+        }, 8000)
       } catch (err) {
-        if (!abortRef.current) {
-          const message =
-            err instanceof Error ? err.message : "An unknown error occurred"
-          setStatus({ state: "error", progress: null, error: message })
-        }
+        setStatus({
+          state: "error",
+          progress: null,
+          error: friendlyError(err),
+          repoName: null,
+        })
       }
     },
-    []
+    [],
   )
 
   const reset = useCallback(() => {
     abortRef.current = true
-    setStatus({ state: "idle", progress: null, error: null })
+    setStatus({ state: "idle", progress: null, error: null, repoName: null })
   }, [])
 
   return { status, startDownload, reset }

@@ -14,7 +14,7 @@ const CORS_PROXY = "https://cors.isomorphic-git.org"
 const CLONE_DIR = "/repo"
 
 export async function cloneAndCollect(
-  options: CloneOptions
+  options: CloneOptions,
 ): Promise<Map<string, Uint8Array>> {
   // Dynamic imports to avoid SSR issues - these are browser-only modules
   const [git, { default: http }, { default: LightningFS }] = await Promise.all([
@@ -66,16 +66,16 @@ export async function cloneAndCollect(
 }
 
 type PromisifiedFS = {
-  readdir(path: string): Promise<string[]>
-  stat(path: string): Promise<{ isDirectory(): boolean }>
-  readFile(path: string): Promise<Uint8Array | string>
+  readdir: (path: string) => Promise<Array<string>>
+  stat: (path: string) => Promise<{ isDirectory: () => boolean }>
+  readFile: (path: string) => Promise<Uint8Array | string>
 }
 
 async function walkFs(
   pfs: PromisifiedFS,
   baseDir: string,
   currentDir: string,
-  files: Map<string, Uint8Array>
+  files: Map<string, Uint8Array>,
 ): Promise<void> {
   const entries = await pfs.readdir(currentDir)
 

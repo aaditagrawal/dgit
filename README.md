@@ -1,21 +1,31 @@
-# TanStack Start + shadcn/ui
+# dgit
 
-This is a template for a new TanStack Start project with React, TypeScript, and shadcn/ui.
+Download public git repositories as ZIP or TAR.GZ archives, entirely from the browser.
 
-## Adding components
+## Why?
 
-To add components to your app, run the following command:
+I saw many of my friends downloading Git repositories using the browser especially on lab computers in a college and I'm not sure I trust many of these websites, and to top it all off they're extremely slow and ad ridden. For many scenarios that people would use these sites for, you don't need the full git history anyway, just a shallow clone. (Otherwise you'd probably just use the git cli if you could interact with git history.)
+
+(there's also a cool animation so yay!)
+
+## How it works
+
+Paste a repo URL, click download. Uses [isomorphic-git](https://isomorphic-git.org) to clone via a CORS proxy, then packages the files client-side with [fflate](https://github.com/101arrowz/fflate).
+
+No server processing. No backend. Everything runs in your browser.
+
+## Options
+
+- **Format**: ZIP (default) or TAR.GZ
+- **Full history**: Off by default (shallow clone, depth 1). Toggle on to include the entire git history.
+
+## Development
 
 ```bash
-npx shadcn@latest add button
+bun install
+bun run dev
 ```
 
-This will place the ui components in the `components` directory.
+## Stack
 
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button";
-```
+TanStack Start, React 19, Tailwind CSS v4, shadcn/ui
