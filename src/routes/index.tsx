@@ -201,10 +201,10 @@ function App() {
               Full repository
             </AlertDialogCancel>
             <AlertDialogAction
-              className="min-w-0"
+              className="min-w-0 overflow-hidden"
               onClick={() => subpathPrompt?.resolve("subfolder")}
             >
-              <span className="truncate">
+              <span className="block truncate">
                 Just /{subpathPrompt?.subpath}
               </span>
             </AlertDialogAction>
