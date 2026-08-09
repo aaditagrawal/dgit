@@ -14,25 +14,29 @@ export type CloneOptions = {
 const CORS_PROXY = "https://dgit-cors-proxy.spanner.workers.dev"
 const CLONE_DIR = "/repo"
 
+async function ensureBuffer(): Promise<void> {
+  if (typeof globalThis.Buffer !== "undefined") return
+
+  const { Buffer } = await import("buffer")
+  Object.defineProperty(globalThis, "Buffer", {
+    value: Buffer,
+    writable: true,
+    configurable: true,
+  })
+}
+
 export async function cloneAndCollect(
   options: CloneOptions
 ): Promise<Map<string, Uint8Array>> {
+  // Buffer must exist before isomorphic-git runs (ESM build checks global Buffer).
+  await ensureBuffer()
+
   // Dynamic imports to avoid SSR issues - these are browser-only modules
   const [git, { default: http }, { default: LightningFS }] = await Promise.all([
     import("isomorphic-git"),
     import("isomorphic-git/http/web"),
     import("@isomorphic-git/lightning-fs"),
   ])
-
-  // Ensure Buffer polyfill is available
-  if (typeof globalThis.Buffer === "undefined") {
-    const bufferModule = await import("buffer/")
-    Object.defineProperty(globalThis, "Buffer", {
-      value: bufferModule.Buffer,
-      writable: true,
-      configurable: true,
-    })
-  }
 
   const fsName = "dgit-" + Date.now()
   const fs = new LightningFS(fsName)
