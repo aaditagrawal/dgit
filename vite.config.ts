@@ -7,18 +7,34 @@ import tailwindcss from "@tailwindcss/vite"
 import { nitro } from "nitro/vite"
 import type { Plugin } from "vite"
 
-// Only alias crypto/buffer for client builds, not SSR
-function clientNodePolyfills(): Plugin {
+const isomorphicGitBrowserEntry = path.resolve(
+  import.meta.dirname,
+  "node_modules/isomorphic-git/index.js"
+)
+const bufferBrowserEntry = path.resolve(
+  import.meta.dirname,
+  "node_modules/buffer/index.js"
+)
+
+// Client builds: force isomorphic-git's ESM browser entry (Web Crypto + sha.js
+// fallback) and the npm `buffer` polyfill. Avoid Node builtins / index.cjs.
+function clientBrowserGit(): Plugin {
   return {
-    name: "client-node-polyfills",
+    name: "client-browser-git",
     config(_, env) {
       if (env.isSsrBuild) return
       return {
         resolve: {
-          alias: {
-            buffer: "buffer/",
-            crypto: path.resolve(import.meta.dirname, "src/lib/crypto-shim.ts"),
-          },
+          alias: [
+            {
+              find: /^isomorphic-git$/,
+              replacement: isomorphicGitBrowserEntry,
+            },
+            {
+              find: /^buffer\/?$/,
+              replacement: bufferBrowserEntry,
+            },
+          ],
         },
       }
     },
@@ -30,7 +46,7 @@ const config = defineConfig({
     tsconfigPaths: true,
   },
   plugins: [
-    clientNodePolyfills(),
+    clientBrowserGit(),
     devtools(),
     nitro(),
     tailwindcss(),
