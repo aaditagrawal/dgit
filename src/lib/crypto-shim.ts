@@ -26,4 +26,6 @@ export function createHash(algorithm: string): Hash {
   return new Hash(algorithm)
 }
 
-export default { createHash }
+const crypto = { createHash }
+
+export default crypto

@@ -18,7 +18,7 @@ export function createTarGz(files: Map<string, Uint8Array>): Uint8Array {
 export function triggerDownload(
   data: Uint8Array,
   filename: string,
-  mimeType: string,
+  mimeType: string
 ): void {
   const blob = new Blob([new Uint8Array(data)], { type: mimeType })
   const url = URL.createObjectURL(blob)
@@ -58,7 +58,9 @@ function createTar(files: Map<string, Uint8Array>): Uint8Array {
 
     // Modification time (136-147)
     const mtime =
-      Math.floor(Date.now() / 1000).toString(8).padStart(11, "0") + "\0"
+      Math.floor(Date.now() / 1000)
+        .toString(8)
+        .padStart(11, "0") + "\0"
     header.set(encoder.encode(mtime), 136)
 
     // Type flag (156): '0' = regular file

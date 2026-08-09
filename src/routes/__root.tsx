@@ -9,7 +9,10 @@ export const Route = createRootRoute({
     <div className="flex min-h-svh items-center justify-center p-6">
       <div className="text-center">
         <p className="text-sm text-muted-foreground">[404] page not found</p>
-        <a href="/" className="mt-2 inline-block text-xs text-primary hover:underline">
+        <a
+          href="/"
+          className="mt-2 inline-block text-xs text-primary hover:underline"
+        >
           go home
         </a>
       </div>

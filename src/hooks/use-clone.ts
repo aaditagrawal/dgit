@@ -2,11 +2,7 @@ import { useCallback, useRef, useState } from "react"
 import type { ArchiveFormat } from "@/lib/archive"
 import type { CloneProgress } from "@/lib/git"
 import type { ParsedRepo } from "@/lib/parse-url"
-import {
-  createTarGz,
-  createZip,
-  triggerDownload,
-} from "@/lib/archive"
+import { createTarGz, createZip, triggerDownload } from "@/lib/archive"
 import { cloneAndCollect } from "@/lib/git"
 import { parseRepoUrl } from "@/lib/parse-url"
 
@@ -43,7 +39,10 @@ function friendlyError(err: unknown): string {
     return "Network error — the CORS proxy may be down or rate-limited. Try again in a moment."
   }
 
-  if (message.includes("Path") && message.includes("not found in the repository")) {
+  if (
+    message.includes("Path") &&
+    message.includes("not found in the repository")
+  ) {
     return message
   }
 
@@ -72,14 +71,19 @@ export function useClone() {
     async (
       parsed: ParsedRepo,
       options: CloneDownloadOptions,
-      subpath: string | null,
+      subpath: string | null
     ) => {
       abortRef.current = false
-      setStatus({ state: "cloning", progress: null, error: null, repoName: null })
+      setStatus({
+        state: "cloning",
+        progress: null,
+        error: null,
+        repoName: null,
+      })
 
       try {
         const downloadName = subpath
-          ? subpath.split("/").pop() ?? parsed.repoName
+          ? (subpath.split("/").pop() ?? parsed.repoName)
           : parsed.repoName
 
         const files = await cloneAndCollect({
@@ -93,10 +97,15 @@ export function useClone() {
           },
         })
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- ref can be mutated concurrently
+        // oxlint-disable-next-line typescript/no-unnecessary-condition -- ref can be mutated concurrently
         if (abortRef.current) return
 
-        setStatus({ state: "archiving", progress: null, error: null, repoName: downloadName })
+        setStatus({
+          state: "archiving",
+          progress: null,
+          error: null,
+          repoName: downloadName,
+        })
 
         let data: Uint8Array
         let filename: string
@@ -113,11 +122,21 @@ export function useClone() {
         }
 
         triggerDownload(data, filename, mimeType)
-        setStatus({ state: "done", progress: null, error: null, repoName: downloadName })
+        setStatus({
+          state: "done",
+          progress: null,
+          error: null,
+          repoName: downloadName,
+        })
 
         setTimeout(() => {
           if (!abortRef.current) {
-            setStatus({ state: "idle", progress: null, error: null, repoName: null })
+            setStatus({
+              state: "idle",
+              progress: null,
+              error: null,
+              repoName: null,
+            })
           }
         }, 8000)
       } catch (err) {
@@ -129,7 +148,7 @@ export function useClone() {
         })
       }
     },
-    [],
+    []
   )
 
   const startDownload = useCallback(
@@ -145,7 +164,7 @@ export function useClone() {
             executeDownload(
               parsed,
               options,
-              choice === "subfolder" ? parsed.subpath : null,
+              choice === "subfolder" ? parsed.subpath : null
             )
           },
         })
@@ -153,7 +172,7 @@ export function useClone() {
         executeDownload(parsed, options, null)
       }
     },
-    [executeDownload],
+    [executeDownload]
   )
 
   const reset = useCallback(() => {

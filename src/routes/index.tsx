@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
-import { ChevronDown, ClipboardPaste, Download, Moon, Sun, X } from "lucide-react"
+import {
+  ChevronDown,
+  ClipboardPaste,
+  Download,
+  Moon,
+  Sun,
+  X,
+} from "lucide-react"
 import type { ArchiveFormat } from "@/lib/archive"
 import {
   AlertDialog,
@@ -186,7 +193,7 @@ function App() {
             <AlertDialogTitle>Subfolder detected</AlertDialogTitle>
             <AlertDialogDescription className="overflow-hidden">
               Your URL points to{" "}
-              <span className="font-mono text-foreground break-all">
+              <span className="font-mono break-all text-foreground">
                 {subpathPrompt?.subpath}
               </span>{" "}
               in{" "}

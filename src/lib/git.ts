@@ -15,7 +15,7 @@ const CORS_PROXY = "https://dgit-cors-proxy.spanner.workers.dev"
 const CLONE_DIR = "/repo"
 
 export async function cloneAndCollect(
-  options: CloneOptions,
+  options: CloneOptions
 ): Promise<Map<string, Uint8Array>> {
   // Dynamic imports to avoid SSR issues - these are browser-only modules
   const [git, { default: http }, { default: LightningFS }] = await Promise.all([
@@ -66,9 +66,7 @@ export async function cloneAndCollect(
     try {
       await pfs.stat(walkRoot)
     } catch {
-      throw new Error(
-        `Path "${options.subpath}" not found in the repository`,
-      )
+      throw new Error(`Path "${options.subpath}" not found in the repository`)
     }
 
     await walkFs(pfs, walkRoot, walkRoot, files)
@@ -88,7 +86,7 @@ async function walkFs(
   pfs: PromisifiedFS,
   baseDir: string,
   currentDir: string,
-  files: Map<string, Uint8Array>,
+  files: Map<string, Uint8Array>
 ): Promise<void> {
   const entries = await pfs.readdir(currentDir)
 

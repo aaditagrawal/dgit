@@ -3,7 +3,6 @@ import { defineConfig } from "vite"
 import { devtools } from "@tanstack/devtools-vite"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import viteReact from "@vitejs/plugin-react"
-import viteTsConfigPaths from "vite-tsconfig-paths"
 import tailwindcss from "@tailwindcss/vite"
 import { nitro } from "nitro/vite"
 import type { Plugin } from "vite"
@@ -18,7 +17,7 @@ function clientNodePolyfills(): Plugin {
         resolve: {
           alias: {
             buffer: "buffer/",
-            crypto: path.resolve(__dirname, "src/lib/crypto-shim.ts"),
+            crypto: path.resolve(import.meta.dirname, "src/lib/crypto-shim.ts"),
           },
         },
       }
@@ -27,13 +26,13 @@ function clientNodePolyfills(): Plugin {
 }
 
 const config = defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
   plugins: [
     clientNodePolyfills(),
     devtools(),
     nitro(),
-    viteTsConfigPaths({
-      projects: ["./tsconfig.json"],
-    }),
     tailwindcss(),
     tanstackStart(),
     viteReact(),

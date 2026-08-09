@@ -9,9 +9,9 @@ export type ParsedRepo = {
 // GitLab:    /user/repo/-/tree/branch/path
 // Bitbucket: /user/repo/src/branch/path
 const TREE_PATTERNS = [
-  /^\/([^/]+\/[^/]+)\/(?:tree|blob)\/[^/]+\/(.+)/,        // GitHub
-  /^\/([^/]+\/[^/]+)\/-\/(?:tree|blob)\/[^/]+\/(.+)/,      // GitLab
-  /^\/([^/]+\/[^/]+)\/src\/[^/]+\/(.+)/,                    // Bitbucket
+  /^\/([^/]+\/[^/]+)\/(?:tree|blob)\/[^/]+\/(.+)/, // GitHub
+  /^\/([^/]+\/[^/]+)\/-\/(?:tree|blob)\/[^/]+\/(.+)/, // GitLab
+  /^\/([^/]+\/[^/]+)\/src\/[^/]+\/(.+)/, // Bitbucket
 ]
 
 export function parseRepoUrl(input: string): ParsedRepo {
@@ -61,7 +61,7 @@ export function parseRepoUrl(input: string): ParsedRepo {
 
   if (pathParts.length < 2) {
     throw new Error(
-      "Invalid repository URL. Expected format: https://github.com/user/repo",
+      "Invalid repository URL. Expected format: https://github.com/user/repo"
     )
   }
 

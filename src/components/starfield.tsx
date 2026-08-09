@@ -61,7 +61,13 @@ export function Starfield({ hyperspace }: StarfieldProps) {
     resize()
     window.addEventListener("resize", resize)
 
-    function project(nx: number, ny: number, z: number, cx: number, cy: number) {
+    function project(
+      nx: number,
+      ny: number,
+      z: number,
+      cx: number,
+      cy: number
+    ) {
       const scale = 1 / Math.max(z, 0.0001)
       return { x: nx * scale * cx + cx, y: ny * scale * cy + cy }
     }
