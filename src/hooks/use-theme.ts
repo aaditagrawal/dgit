@@ -10,7 +10,9 @@ function getSystemTheme(): Theme {
 }
 
 function getStoredTheme(): Theme | null {
-  return localStorage.getItem("dgit-theme") as Theme | null
+  const stored = localStorage.getItem("dgit-theme")
+  if (stored === "light" || stored === "dark") return stored
+  return null
 }
 
 function applyTheme(theme: Theme) {

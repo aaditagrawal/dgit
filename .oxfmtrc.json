@@ -18,6 +18,18 @@
     "package-lock.json",
     "pnpm-lock.yaml",
     "yarn.lock",
-    "src/routeTree.gen.ts"
+    "src/routeTree.gen.ts",
+    ".agent/**",
+    ".agents/**",
+    ".claude/**",
+    ".codex/**",
+    ".continue/**",
+    ".cursor/**",
+    ".gemini/**",
+    ".opencode/**",
+    ".pi/**",
+    ".roo/**",
+    ".windsurf/**",
+    "tools/oxlint/anti-slop/**"
   ]
 }
