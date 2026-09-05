@@ -33,10 +33,15 @@ export function triggerDownload(
 
 // POSIX tar format encoder
 function createTar(files: Map<string, Uint8Array>): Uint8Array {
-  const blocks: Array<Uint8Array> = []
+  let totalSize = 1024 // Two 512-byte zero blocks as EOF
+  for (const data of files.values()) {
+    totalSize += 512 + Math.ceil(data.length / 512) * 512
+  }
+  const result = new Uint8Array(totalSize)
+  let offset = 0
 
   for (const [path, data] of files) {
-    const header = new Uint8Array(512)
+    const header = result.subarray(offset, offset + 512)
     const encoder = new TextEncoder()
 
     // File name (0-99)
@@ -83,27 +88,10 @@ function createTar(files: Map<string, Uint8Array>): Uint8Array {
     const checksumStr = checksum.toString(8).padStart(6, "0") + "\0 "
     header.set(encoder.encode(checksumStr), 148)
 
-    blocks.push(header)
-
-    // File data padded to 512-byte blocks
-    if (data.length > 0) {
-      const paddedSize = Math.ceil(data.length / 512) * 512
-      const paddedData = new Uint8Array(paddedSize)
-      paddedData.set(data)
-      blocks.push(paddedData)
-    }
+    offset += 512
+    result.set(data, offset)
+    offset += Math.ceil(data.length / 512) * 512
   }
 
-  // Two 512-byte zero blocks as EOF
-  blocks.push(new Uint8Array(1024))
-
-  // Concatenate all blocks
-  const totalSize = blocks.reduce((sum, b) => sum + b.length, 0)
-  const result = new Uint8Array(totalSize)
-  let offset = 0
-  for (const block of blocks) {
-    result.set(block, offset)
-    offset += block.length
-  }
   return result
 }
