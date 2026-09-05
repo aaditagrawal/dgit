@@ -1,0 +1,821 @@
+/* State and structural selectors preserve the Radix contracts. Base declarations are StyleX. */
+.dgit-leftPanel {
+  flex-shrink: 0;
+}
+.dgit-dismissError {
+  flex-shrink: 0;
+}
+.dgit-buttonBase {
+  flex-shrink: 0;
+}
+.dgit-switchBase {
+  flex-shrink: 0;
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-errorBox {
+    border-color: color-mix(in oklab, var(--destructive) 50%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-dialogOverlay {
+    background-color: color-mix(in oklab, var(--color-black) 10%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonDestructive {
+    background-color: color-mix(in oklab, var(--destructive) 10%, transparent);
+  }
+}
+.dgit-errorBox {
+  color: var(--destructive);
+}
+.dgit-dismissError {
+  color: var(--destructive);
+}
+.dgit-buttonDestructive {
+  color: var(--destructive);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-dismissError {
+    color: color-mix(in oklab, var(--destructive) 70%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-dialogContent {
+    --tw-ring-color: color-mix(in oklab, var(--foreground) 10%, transparent);
+  }
+}
+.dgit-labelBase:is(:where(.dgit-settingsToggle)[data-disabled="true"] *) {
+  pointer-events: none;
+}
+.dgit-labelBase:is(:where(.dgit-settingsToggle)[data-disabled="true"] *) {
+  opacity: 0.5;
+}
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="default"] *) {
+  width: calc(var(--spacing) * 4);
+  height: calc(var(--spacing) * 4);
+}
+.dgit-dialogFooter:is(:where(.dgit-dialogContent)[data-size="sm"] *) {
+  display: grid;
+}
+.dgit-dialogFooter:is(:where(.dgit-dialogContent)[data-size="sm"] *) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="sm"] *) {
+  width: calc(var(--spacing) * 3);
+  height: calc(var(--spacing) * 3);
+}
+.dgit-settingsChevron:is(:where(.dgit-settingsToggle)[data-state="open"] *) {
+  rotate: 180deg;
+}
+.dgit-labelBase:is(:where(.dgit-switchBase):disabled ~ *) {
+  cursor: not-allowed;
+}
+.dgit-labelBase:is(:where(.dgit-switchBase):disabled ~ *) {
+  opacity: 0.5;
+}
+.dgit-inputBase::file-selector-button {
+  display: inline-flex;
+}
+.dgit-inputBase::file-selector-button {
+  height: calc(var(--spacing) * 6);
+}
+.dgit-inputBase::file-selector-button {
+  border-style: var(--tw-border-style);
+  border-width: 0;
+}
+.dgit-inputBase::file-selector-button {
+  background-color: #0000;
+}
+.dgit-inputBase::file-selector-button {
+  font-size: var(--text-xs);
+  line-height: var(--tw-leading, var(--text-xs--line-height));
+}
+.dgit-inputBase::file-selector-button {
+  --tw-font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-medium);
+}
+.dgit-inputBase::file-selector-button {
+  color: var(--foreground);
+}
+.dgit-repositoryInput::placeholder {
+  color: var(--chart-5);
+}
+.dgit-inputBase::placeholder {
+  color: var(--muted-foreground);
+}
+.dgit-switchBase:after {
+  content: var(--tw-content);
+  position: absolute;
+}
+.dgit-switchBase:after {
+  content: var(--tw-content);
+  inset-inline: calc(var(--spacing) * -3);
+}
+.dgit-switchBase:after {
+  content: var(--tw-content);
+  inset-block: calc(var(--spacing) * -2);
+}
+@media (hover: hover) {
+  .dgit-buttonDestructive:hover {
+    background-color: var(--destructive);
+  }
+}
+@media (hover: hover) {
+  @supports (color: color-mix(in lab, red, red)) {
+    .dgit-buttonDestructive:hover {
+      background-color: color-mix(
+        in oklab,
+        var(--destructive) 20%,
+        transparent
+      );
+    }
+  }
+}
+@media (hover: hover) {
+  .dgit-buttonOutline:hover {
+    background-color: var(--muted);
+  }
+}
+@media (hover: hover) {
+  .dgit-buttonGhost:hover {
+    background-color: var(--muted);
+  }
+}
+@media (hover: hover) {
+  .dgit-buttonSecondary:hover {
+    background-color: var(--secondary);
+  }
+}
+@media (hover: hover) {
+  @supports (color: color-mix(in lab, red, red)) {
+    .dgit-buttonSecondary:hover {
+      background-color: color-mix(in oklab, var(--secondary) 80%, transparent);
+    }
+  }
+}
+@media (hover: hover) {
+  .dgit-dismissError:hover {
+    color: var(--destructive);
+  }
+}
+@media (hover: hover) {
+  .dgit-pasteButton:hover {
+    color: var(--foreground);
+  }
+}
+@media (hover: hover) {
+  .dgit-settingsToggle:hover {
+    color: var(--foreground);
+  }
+}
+@media (hover: hover) {
+  .dgit-formatUnselected:hover {
+    color: var(--foreground);
+  }
+}
+@media (hover: hover) {
+  .dgit-buttonOutline:hover {
+    color: var(--foreground);
+  }
+}
+@media (hover: hover) {
+  .dgit-buttonGhost:hover {
+    color: var(--foreground);
+  }
+}
+@media (hover: hover) {
+  .dgit-buttonLink:hover {
+    text-decoration-line: underline;
+  }
+}
+.dgit-repositoryInput:focus-visible {
+  border-color: var(--chart-2);
+}
+.dgit-buttonDestructive:focus-visible {
+  border-color: var(--destructive);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonDestructive:focus-visible {
+    border-color: color-mix(in oklab, var(--destructive) 40%, transparent);
+  }
+}
+.dgit-buttonBase:focus-visible {
+  border-color: var(--ring);
+}
+.dgit-inputBase:focus-visible {
+  border-color: var(--ring);
+}
+.dgit-switchBase:focus-visible {
+  border-color: var(--ring);
+}
+.dgit-buttonBase:focus-visible {
+  --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0
+    calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow:
+    var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+    var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dgit-inputBase:focus-visible {
+  --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0
+    calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow:
+    var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+    var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dgit-switchBase:focus-visible {
+  --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0
+    calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow:
+    var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+    var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dgit-repositoryInput:focus-visible {
+  --tw-ring-color: var(--chart-2);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-repositoryInput:focus-visible {
+    --tw-ring-color: color-mix(in oklab, var(--chart-2) 50%, transparent);
+  }
+}
+.dgit-buttonDestructive:focus-visible {
+  --tw-ring-color: var(--destructive);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonDestructive:focus-visible {
+    --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);
+  }
+}
+.dgit-buttonBase:focus-visible {
+  --tw-ring-color: var(--ring);
+}
+.dgit-inputBase:focus-visible {
+  --tw-ring-color: var(--ring);
+}
+.dgit-switchBase:focus-visible {
+  --tw-ring-color: var(--ring);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonBase:focus-visible {
+    --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-inputBase:focus-visible {
+    --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-switchBase:focus-visible {
+    --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);
+  }
+}
+.dgit-buttonBase:active:not([aria-haspopup]) {
+  --tw-translate-y: 1px;
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+}
+.dgit-buttonBase:disabled {
+  pointer-events: none;
+}
+.dgit-inputBase:disabled {
+  pointer-events: none;
+}
+.dgit-formatButton:disabled {
+  pointer-events: none;
+}
+.dgit-inputBase:disabled {
+  cursor: not-allowed;
+}
+.dgit-inputBase:disabled {
+  background-color: var(--input);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-inputBase:disabled {
+    background-color: color-mix(in oklab, var(--input) 50%, transparent);
+  }
+}
+.dgit-buttonBase:disabled {
+  opacity: 0.5;
+}
+.dgit-inputBase:disabled {
+  opacity: 0.5;
+}
+.dgit-formatButton:disabled {
+  opacity: 0.5;
+}
+.dgit-buttonSizeXs:has([data-icon="inline-end"]) {
+  padding-right: calc(var(--spacing) * 1.5);
+}
+.dgit-buttonSizeSm:has([data-icon="inline-end"]) {
+  padding-right: calc(var(--spacing) * 1.5);
+}
+.dgit-buttonSizeDefault:has([data-icon="inline-end"]) {
+  padding-right: calc(var(--spacing) * 2);
+}
+.dgit-buttonSizeLg:has([data-icon="inline-end"]) {
+  padding-right: calc(var(--spacing) * 2);
+}
+.dgit-buttonSizeXs:has([data-icon="inline-start"]) {
+  padding-left: calc(var(--spacing) * 1.5);
+}
+.dgit-buttonSizeSm:has([data-icon="inline-start"]) {
+  padding-left: calc(var(--spacing) * 1.5);
+}
+.dgit-buttonSizeDefault:has([data-icon="inline-start"]) {
+  padding-left: calc(var(--spacing) * 2);
+}
+.dgit-buttonSizeLg:has([data-icon="inline-start"]) {
+  padding-left: calc(var(--spacing) * 2);
+}
+.dgit-dialogHeader:has([data-slot="alert-dialog-media"]) {
+  grid-template-rows: auto auto 1fr;
+}
+.dgit-dialogHeader:has([data-slot="alert-dialog-media"]) {
+  column-gap: calc(var(--spacing) * 4);
+}
+.dgit-buttonOutline[aria-expanded="true"] {
+  background-color: var(--muted);
+}
+.dgit-buttonGhost[aria-expanded="true"] {
+  background-color: var(--muted);
+}
+.dgit-buttonSecondary[aria-expanded="true"] {
+  background-color: var(--secondary);
+}
+.dgit-buttonOutline[aria-expanded="true"] {
+  color: var(--foreground);
+}
+.dgit-buttonGhost[aria-expanded="true"] {
+  color: var(--foreground);
+}
+.dgit-buttonSecondary[aria-expanded="true"] {
+  color: var(--secondary-foreground);
+}
+.dgit-buttonBase[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.dgit-inputBase[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.dgit-switchBase[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.dgit-buttonBase[aria-invalid="true"] {
+  --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0
+    calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow:
+    var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+    var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dgit-inputBase[aria-invalid="true"] {
+  --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0
+    calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow:
+    var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+    var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dgit-switchBase[aria-invalid="true"] {
+  --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0
+    calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow:
+    var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+    var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dgit-buttonBase[aria-invalid="true"] {
+  --tw-ring-color: var(--destructive);
+}
+.dgit-inputBase[aria-invalid="true"] {
+  --tw-ring-color: var(--destructive);
+}
+.dgit-switchBase[aria-invalid="true"] {
+  --tw-ring-color: var(--destructive);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonBase[aria-invalid="true"] {
+    --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-inputBase[aria-invalid="true"] {
+    --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-switchBase[aria-invalid="true"] {
+    --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);
+  }
+}
+.dgit-switchBase[data-size="default"] {
+  height: 18.4px;
+}
+.dgit-switchBase[data-size="default"] {
+  width: 32px;
+}
+.dgit-dialogContent[data-size="default"] {
+  max-width: var(--container-xs);
+}
+.dgit-switchBase[data-size="sm"] {
+  height: 14px;
+}
+.dgit-switchBase[data-size="sm"] {
+  width: 24px;
+}
+.dgit-dialogContent[data-size="sm"] {
+  max-width: var(--container-xs);
+}
+@supports (
+  (-webkit-backdrop-filter: var(--tw)) or (backdrop-filter: var(--tw))
+) {
+  .dgit-dialogOverlay {
+    --tw-backdrop-blur: blur(var(--blur-xs));
+    -webkit-backdrop-filter: var(--tw-backdrop-blur,)
+      var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,)
+      var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,)
+      var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,)
+      var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
+    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,)
+      var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,)
+      var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,)
+      var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,)
+      var(--tw-backdrop-sepia,);
+  }
+}
+@media (width>=40rem) {
+  .dgit-dialogFooter {
+    flex-direction: row;
+  }
+}
+@media (width>=40rem) {
+  .dgit-dialogFooter {
+    justify-content: flex-end;
+  }
+}
+@media (width>=40rem) {
+  .dgit-dialogMedia:is(:where(.dgit-dialogContent)[data-size="default"] *) {
+    grid-row: span 2 / span 2;
+  }
+}
+@media (width>=40rem) {
+  .dgit-dialogHeader:is(:where(.dgit-dialogContent)[data-size="default"] *) {
+    place-items: start;
+  }
+}
+@media (width>=40rem) {
+  .dgit-dialogHeader:is(:where(.dgit-dialogContent)[data-size="default"] *) {
+    text-align: left;
+  }
+}
+@media (width>=40rem) {
+  .dgit-dialogTitle:is(:where(.dgit-dialogContent)[data-size="default"] *):is(
+      :where(.dgit-dialogContent):has([data-slot="alert-dialog-media"]) *
+    ) {
+    grid-column-start: 2;
+  }
+}
+@media (width>=40rem) {
+  .dgit-dialogHeader:is(:where(.dgit-dialogContent)[data-size="default"] *):has(
+      [data-slot="alert-dialog-media"]
+    ) {
+    grid-template-rows: auto 1fr;
+  }
+}
+@media (width>=40rem) {
+  .dgit-dialogContent[data-size="default"] {
+    max-width: var(--container-sm);
+  }
+}
+@media (width>=48rem) {
+  .dgit-starPanel {
+    height: auto;
+  }
+}
+@media (width>=48rem) {
+  .dgit-leftPanel {
+    flex: 1;
+  }
+}
+@media (width>=48rem) {
+  .dgit-appShell {
+    flex-direction: row;
+  }
+}
+@media (width>=48rem) {
+  .dgit-leftPanel {
+    padding: calc(var(--spacing) * 12);
+  }
+}
+@media (width>=48rem) {
+  .dgit-inputBase {
+    font-size: var(--text-xs);
+    line-height: var(--tw-leading, var(--text-xs--line-height));
+  }
+}
+@media (width>=48rem) {
+  .dgit-dialogDescription {
+    text-wrap: pretty;
+  }
+}
+.dgit-buttonOutline:is(.dark *) {
+  border-color: var(--input);
+}
+.dgit-buttonDestructive:is(.dark *) {
+  background-color: var(--destructive);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonDestructive:is(.dark *) {
+    background-color: color-mix(in oklab, var(--destructive) 20%, transparent);
+  }
+}
+.dgit-buttonOutline:is(.dark *) {
+  background-color: var(--input);
+}
+.dgit-inputBase:is(.dark *) {
+  background-color: var(--input);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonOutline:is(.dark *) {
+    background-color: color-mix(in oklab, var(--input) 30%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-inputBase:is(.dark *) {
+    background-color: color-mix(in oklab, var(--input) 30%, transparent);
+  }
+}
+@media (hover: hover) {
+  .dgit-buttonDestructive:is(.dark *):hover {
+    background-color: var(--destructive);
+  }
+}
+@media (hover: hover) {
+  @supports (color: color-mix(in lab, red, red)) {
+    .dgit-buttonDestructive:is(.dark *):hover {
+      background-color: color-mix(
+        in oklab,
+        var(--destructive) 30%,
+        transparent
+      );
+    }
+  }
+}
+@media (hover: hover) {
+  .dgit-buttonOutline:is(.dark *):hover {
+    background-color: var(--input);
+  }
+}
+@media (hover: hover) {
+  @supports (color: color-mix(in lab, red, red)) {
+    .dgit-buttonOutline:is(.dark *):hover {
+      background-color: color-mix(in oklab, var(--input) 50%, transparent);
+    }
+  }
+}
+@media (hover: hover) {
+  .dgit-buttonGhost:is(.dark *):hover {
+    background-color: var(--muted);
+  }
+}
+@media (hover: hover) {
+  @supports (color: color-mix(in lab, red, red)) {
+    .dgit-buttonGhost:is(.dark *):hover {
+      background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+    }
+  }
+}
+.dgit-buttonDestructive:is(.dark *):focus-visible {
+  --tw-ring-color: var(--destructive);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonDestructive:is(.dark *):focus-visible {
+    --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);
+  }
+}
+.dgit-inputBase:is(.dark *):disabled {
+  background-color: var(--input);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-inputBase:is(.dark *):disabled {
+    background-color: color-mix(in oklab, var(--input) 80%, transparent);
+  }
+}
+.dgit-buttonBase:is(.dark *)[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.dgit-inputBase:is(.dark *)[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.dgit-switchBase:is(.dark *)[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonBase:is(.dark *)[aria-invalid="true"] {
+    border-color: color-mix(in oklab, var(--destructive) 50%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-inputBase:is(.dark *)[aria-invalid="true"] {
+    border-color: color-mix(in oklab, var(--destructive) 50%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-switchBase:is(.dark *)[aria-invalid="true"] {
+    border-color: color-mix(in oklab, var(--destructive) 50%, transparent);
+  }
+}
+.dgit-buttonBase:is(.dark *)[aria-invalid="true"] {
+  --tw-ring-color: var(--destructive);
+}
+.dgit-inputBase:is(.dark *)[aria-invalid="true"] {
+  --tw-ring-color: var(--destructive);
+}
+.dgit-switchBase:is(.dark *)[aria-invalid="true"] {
+  --tw-ring-color: var(--destructive);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-buttonBase:is(.dark *)[aria-invalid="true"] {
+    --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-inputBase:is(.dark *)[aria-invalid="true"] {
+    --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);
+  }
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-switchBase:is(.dark *)[aria-invalid="true"] {
+    --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);
+  }
+}
+.dgit-dialogOverlay:where([data-state="open"]),
+.dgit-dialogOverlay:where([data-open]:not([data-open="false"])) {
+  animation: enter var(--tw-animation-duration, var(--tw-duration, 0.15s))
+    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
+    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
+    var(--tw-animation-fill-mode, none);
+}
+.dgit-dialogContent:where([data-state="open"]),
+.dgit-dialogContent:where([data-open]:not([data-open="false"])) {
+  animation: enter var(--tw-animation-duration, var(--tw-duration, 0.15s))
+    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
+    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
+    var(--tw-animation-fill-mode, none);
+}
+.dgit-dialogOverlay:where([data-state="open"]),
+.dgit-dialogOverlay:where([data-open]:not([data-open="false"])) {
+  --tw-enter-opacity: 0;
+}
+.dgit-dialogContent:where([data-state="open"]),
+.dgit-dialogContent:where([data-open]:not([data-open="false"])) {
+  --tw-enter-opacity: 0;
+}
+.dgit-dialogContent:where([data-state="open"]),
+.dgit-dialogContent:where([data-open]:not([data-open="false"])) {
+  --tw-enter-scale: 0.95;
+}
+.dgit-dialogOverlay:where([data-state="closed"]),
+.dgit-dialogOverlay:where([data-closed]:not([data-closed="false"])) {
+  animation: exit var(--tw-animation-duration, var(--tw-duration, 0.15s))
+    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
+    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
+    var(--tw-animation-fill-mode, none);
+}
+.dgit-dialogContent:where([data-state="closed"]),
+.dgit-dialogContent:where([data-closed]:not([data-closed="false"])) {
+  animation: exit var(--tw-animation-duration, var(--tw-duration, 0.15s))
+    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
+    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
+    var(--tw-animation-fill-mode, none);
+}
+.dgit-dialogOverlay:where([data-state="closed"]),
+.dgit-dialogOverlay:where([data-closed]:not([data-closed="false"])) {
+  --tw-exit-opacity: 0;
+}
+.dgit-dialogContent:where([data-state="closed"]),
+.dgit-dialogContent:where([data-closed]:not([data-closed="false"])) {
+  --tw-exit-opacity: 0;
+}
+.dgit-dialogContent:where([data-state="closed"]),
+.dgit-dialogContent:where([data-closed]:not([data-closed="false"])) {
+  --tw-exit-scale: 0.95;
+}
+.dgit-switchBase:where([data-state="checked"]),
+.dgit-switchBase:where([data-checked]:not([data-checked="false"])) {
+  background-color: var(--primary);
+}
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="default"] *):where(
+    [data-state="checked"]
+  ),
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="default"] *):where(
+    [data-checked]:not([data-checked="false"])
+  ),
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="sm"] *):where(
+    [data-state="checked"]
+  ),
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="sm"] *):where(
+    [data-checked]:not([data-checked="false"])
+  ) {
+  --tw-translate-x: calc(100% - 2px);
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+}
+.dgit-switchThumb:is(.dark *):where([data-state="checked"]),
+.dgit-switchThumb:is(.dark *):where(
+    [data-checked]:not([data-checked="false"])
+  ) {
+  background-color: var(--primary-foreground);
+}
+.dgit-switchBase:where([data-state="unchecked"]),
+.dgit-switchBase:where([data-unchecked]:not([data-unchecked="false"])) {
+  background-color: var(--input);
+}
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="default"] *):where(
+    [data-state="unchecked"]
+  ),
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="default"] *):where(
+    [data-unchecked]:not([data-unchecked="false"])
+  ),
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="sm"] *):where(
+    [data-state="unchecked"]
+  ),
+.dgit-switchThumb:is(:where(.dgit-switchBase)[data-size="sm"] *):where(
+    [data-unchecked]:not([data-unchecked="false"])
+  ) {
+  --tw-translate-x: 0px;
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+}
+.dgit-switchThumb:is(.dark *):where([data-state="unchecked"]),
+.dgit-switchThumb:is(.dark *):where(
+    [data-unchecked]:not([data-unchecked="false"])
+  ) {
+  background-color: var(--foreground);
+}
+.dgit-switchBase:is(.dark *):where([data-state="unchecked"]),
+.dgit-switchBase:is(.dark *):where(
+    [data-unchecked]:not([data-unchecked="false"])
+  ) {
+  background-color: var(--input);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .dgit-switchBase:is(.dark *):where([data-state="unchecked"]),
+  .dgit-switchBase:is(.dark *):where(
+      [data-unchecked]:not([data-unchecked="false"])
+    ) {
+    background-color: color-mix(in oklab, var(--input) 80%, transparent);
+  }
+}
+.dgit-switchBase:where([data-disabled="true"]),
+.dgit-switchBase:where([data-disabled]:not([data-disabled="false"])) {
+  cursor: not-allowed;
+}
+.dgit-switchBase:where([data-disabled="true"]),
+.dgit-switchBase:where([data-disabled]:not([data-disabled="false"])) {
+  opacity: 0.5;
+}
+.dgit-buttonBase svg {
+  pointer-events: none;
+}
+.dgit-buttonBase svg {
+  flex-shrink: 0;
+}
+.dgit-buttonSizeXs svg:not([data-stylex-sized]) {
+  width: calc(var(--spacing) * 3);
+  height: calc(var(--spacing) * 3);
+}
+.dgit-buttonSizeIconXs svg:not([data-stylex-sized]) {
+  width: calc(var(--spacing) * 3);
+  height: calc(var(--spacing) * 3);
+}
+.dgit-buttonSizeSm svg:not([data-stylex-sized]) {
+  width: calc(var(--spacing) * 3.5);
+  height: calc(var(--spacing) * 3.5);
+}
+.dgit-buttonBase svg:not([data-stylex-sized]) {
+  width: calc(var(--spacing) * 4);
+  height: calc(var(--spacing) * 4);
+}
+:is(.dgit-dialogDescription > *):is(a) {
+  text-decoration-line: underline;
+}
+:is(.dgit-dialogDescription > *):is(a) {
+  text-underline-offset: 3px;
+}
+@media (hover: hover) {
+  .dgit-buttonDefault:is(a):hover {
+    background-color: var(--primary);
+  }
+}
+@media (hover: hover) {
+  @supports (color: color-mix(in lab, red, red)) {
+    .dgit-buttonDefault:is(a):hover {
+      background-color: color-mix(in oklab, var(--primary) 80%, transparent);
+    }
+  }
+}
+@media (hover: hover) {
+  :is(.dgit-dialogDescription > *):is(a):hover {
+    color: var(--foreground);
+  }
+}
+:is(.dgit-dialogMedia > *):is(svg:not([data-stylex-sized])) {
+  width: calc(var(--spacing) * 6);
+  height: calc(var(--spacing) * 6);
+}
