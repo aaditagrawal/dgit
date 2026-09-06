@@ -1,3 +1,5 @@
+import * as stylex from "@stylexjs/stylex"
+import { styles, classNames } from "@/ui.stylex"
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
@@ -6,13 +8,10 @@ import appCss from "../styles.css?url"
 
 export const Route = createRootRoute({
   notFoundComponent: () => (
-    <div className="flex min-h-svh items-center justify-center p-6">
-      <div className="text-center">
-        <p className="text-sm text-muted-foreground">[404] page not found</p>
-        <a
-          href="/"
-          className="mt-2 inline-block text-xs text-primary hover:underline"
-        >
+    <div {...stylex.props(styles.notFound)}>
+      <div {...stylex.props(styles.centered)}>
+        <p className={classNames.subtitle}>[404] page not found</p>
+        <a href="/" {...stylex.props(styles.homeLink)}>
           go home
         </a>
       </div>
