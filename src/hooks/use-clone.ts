@@ -26,10 +26,7 @@ export type SubpathPrompt = {
   resolve: (choice: "subfolder" | "full") => void
 }
 
-function friendlyError(err: unknown): string {
-  const message =
-    err instanceof Error ? err.message : "An unknown error occurred"
-
+function friendlyError(message: string): string {
   if (
     message.includes("Failed to fetch") ||
     message.includes("NetworkError") ||
@@ -140,10 +137,13 @@ export function useClone() {
           }
         }, 8000)
       } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "An unknown error occurred"
+
         setStatus({
           state: "error",
           progress: null,
-          error: friendlyError(err),
+          error: friendlyError(message),
           repoName: null,
         })
       }

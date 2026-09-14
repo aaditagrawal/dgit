@@ -15,7 +15,7 @@ const CORS_PROXY = "https://dgit-cors-proxy.spanner.workers.dev"
 const CLONE_DIR = "/repo"
 
 async function ensureBuffer(): Promise<void> {
-  if (typeof globalThis.Buffer !== "undefined") return
+  if (globalThis.Buffer !== undefined) return
 
   const { Buffer } = await import("buffer")
   Object.defineProperty(globalThis, "Buffer", {
@@ -83,7 +83,7 @@ export async function cloneAndCollect(
 type PromisifiedFS = {
   readdir: (path: string) => Promise<Array<string>>
   stat: (path: string) => Promise<{ isDirectory: () => boolean }>
-  readFile: (path: string) => Promise<Uint8Array | string>
+  readFile: (path: string) => Promise<Uint8Array>
 }
 
 async function walkFs(
@@ -103,7 +103,7 @@ async function walkFs(
     if (stat.isDirectory()) {
       await walkFs(pfs, baseDir, fullPath, files)
     } else {
-      const data = (await pfs.readFile(fullPath)) as Uint8Array
+      const data = await pfs.readFile(fullPath)
       const relativePath = fullPath.slice(baseDir.length + 1)
       files.set(relativePath, data)
     }

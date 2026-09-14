@@ -1,7 +1,11 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "jsPlugins": [
-    "@shadcn/lint"
+    "@shadcn/lint",
+    {
+      "name": "anti-slop",
+      "specifier": "./tools/oxlint/anti-slop/index.ts"
+    }
   ],
   "plugins": [
     "eslint",
@@ -83,15 +87,38 @@
       "error",
       {
         "allow": [
-          "layout"
+          "layout",
+          "dgit-*"
         ]
       }
     ],
     "shadcn/no-raw-colors": "error",
     "shadcn/no-arbitrary-values": "error",
     "shadcn/no-inline-styles": "error",
-    "shadcn/no-unknown-classes": "error",
-    "shadcn/require-static-classes": "error"
+    "shadcn/no-unknown-classes": [
+      "error",
+      {
+        "allow": [
+          "dgit-*"
+        ]
+      }
+    ],
+    "shadcn/require-static-classes": "off",
+    "anti-slop/no-chained-type-assertions": "error",
+    "anti-slop/no-conditional-empty-object-spread": "error",
+    "anti-slop/no-known-value-widening": "error",
+    "anti-slop/no-module-mocking": "error",
+    "anti-slop/no-object-parameters": "error",
+    "anti-slop/no-reflect-apply": "error",
+    "anti-slop/no-reflect-get": "error",
+    "anti-slop/no-runtime-typeof": "error",
+    "anti-slop/no-shape-in-symbol-names": "error",
+    "anti-slop/no-unknown-parameters": "error",
+    "anti-slop/no-unknown-returns": "error",
+    "anti-slop/no-unknown-type-aliases": "error",
+    "anti-slop/no-unsafe-dictionary-type": "error",
+    "anti-slop/no-widen-then-assert": "error",
+    "anti-slop/require-safety-comment-for-type-assertion": "error"
   },
   "ignorePatterns": [
     "**/node_modules/**",
@@ -108,7 +135,19 @@
     "**/.nitro/**",
     "**/.tanstack/**",
     "**/components/ui/**",
-    "**/src/components/ui/**"
+    "**/src/components/ui/**",
+    ".agent/**",
+    ".agents/**",
+    ".claude/**",
+    ".codex/**",
+    ".continue/**",
+    ".cursor/**",
+    ".gemini/**",
+    ".opencode/**",
+    ".pi/**",
+    ".roo/**",
+    ".windsurf/**",
+    "tools/oxlint/anti-slop/**"
   ],
   "overrides": [
     {

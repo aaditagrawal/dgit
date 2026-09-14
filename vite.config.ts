@@ -3,7 +3,8 @@ import { defineConfig } from "vite"
 import { devtools } from "@tanstack/devtools-vite"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import viteReact from "@vitejs/plugin-react"
-import tailwindcss from "@tailwindcss/vite"
+import { transformAsync } from "@babel/core"
+import { stylexOptions } from "./stylex.config.js"
 import { nitro } from "nitro/vite"
 import type { Plugin } from "vite"
 
@@ -49,7 +50,22 @@ const config = defineConfig({
     clientBrowserGit(),
     devtools(),
     nitro(),
-    tailwindcss(),
+    {
+      name: "compile-stylex",
+      enforce: "pre",
+      async transform(code, id) {
+        if (!id.endsWith(".stylex.js")) return
+        const result = await transformAsync(code, {
+          filename: id,
+          babelrc: false,
+          configFile: false,
+          plugins: [["@stylexjs/babel-plugin", stylexOptions]],
+          sourceMaps: true,
+        })
+        if (!result?.code) return
+        return { code: result.code, map: result.map }
+      },
+    },
     tanstackStart(),
     viteReact(),
   ],

@@ -1,3 +1,4 @@
+import { classNames } from "@/ui.stylex"
 import { useCallback, useEffect, useRef } from "react"
 import { useMountEffect } from "@/hooks/use-mount-effect"
 
@@ -145,9 +146,6 @@ export function Starfield({ hyperspace }: StarfieldProps) {
   })
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 h-full w-full bg-black"
-    />
+    <canvas ref={canvasRef} className={classNames.starfieldCanvas} />
   )
 }
