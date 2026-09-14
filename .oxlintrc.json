@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "jsPlugins": [
+    "@shadcn/lint"
+  ],
   "plugins": [
     "eslint",
     "typescript",
@@ -75,7 +78,20 @@
     "unicorn/no-useless-fallback-in-spread": "warn",
     "typescript/no-explicit-any": "warn",
     "typescript/no-non-null-assertion": "warn",
-    "import/no-default-export": "off"
+    "import/no-default-export": "off",
+    "shadcn/no-restyle": [
+      "error",
+      {
+        "allow": [
+          "layout"
+        ]
+      }
+    ],
+    "shadcn/no-raw-colors": "error",
+    "shadcn/no-arbitrary-values": "error",
+    "shadcn/no-inline-styles": "error",
+    "shadcn/no-unknown-classes": "error",
+    "shadcn/require-static-classes": "error"
   },
   "ignorePatterns": [
     "**/node_modules/**",
@@ -95,6 +111,17 @@
     "**/src/components/ui/**"
   ],
   "overrides": [
+    {
+      "files": [
+        "src/components/ui/**",
+        "**/src/components/ui/**"
+      ],
+      "rules": {
+        "shadcn/no-restyle": "off",
+        "shadcn/no-arbitrary-values": "off",
+        "shadcn/require-static-classes": "off"
+      }
+    },
     {
       "files": [
         "**/*.{test,spec}.{ts,tsx,js,jsx}",

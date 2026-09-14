@@ -93,7 +93,6 @@ function App() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={isActive}
-                className="border-chart-3 pr-9 text-chart-1 placeholder:text-chart-5 focus-visible:border-chart-2 focus-visible:ring-chart-2/50"
               />
               <Button
                 type="button"
@@ -101,10 +100,10 @@ function App() {
                 size="icon-xs"
                 onClick={handlePaste}
                 disabled={isActive}
-                className="absolute top-1/2 right-1.5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute top-1/2 right-1.5 -translate-y-1/2"
                 aria-label="Paste from clipboard"
               >
-                <ClipboardPaste className="size-3.5" />
+                <ClipboardPaste className="size-3.5 text-muted-foreground group-hover/button:text-foreground" />
               </Button>
             </div>
             <Button type="submit" disabled={isActive || !url.trim()}>
@@ -114,7 +113,7 @@ function App() {
           </form>
 
           <Collapsible>
-            <CollapsibleTrigger className="group flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+            <CollapsibleTrigger className="group">
               Settings
               <ChevronDown className="size-3 transition-transform group-data-[state=open]:rotate-180" />
             </CollapsibleTrigger>
@@ -122,7 +121,7 @@ function App() {
               <div className="mt-3 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="history" className="text-xs">
+                    <Label htmlFor="history">
                       {shallow ? "Latest version only" : "Full git history"}
                     </Label>
                     <p className="text-xs text-muted-foreground">

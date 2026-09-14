@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { useMountEffect } from "@/hooks/use-mount-effect"
 
 type StarfieldProps = {
@@ -21,7 +21,9 @@ const TRANSITION_RATE = 0.08
 export function Starfield({ hyperspace }: StarfieldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const hyperspaceRef = useRef(hyperspace)
-  hyperspaceRef.current = hyperspace
+  useEffect(() => {
+    hyperspaceRef.current = hyperspace
+  }, [hyperspace])
 
   const init = useCallback((canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext("2d")
@@ -145,8 +147,7 @@ export function Starfield({ hyperspace }: StarfieldProps) {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 h-full w-full"
-      style={{ background: "black" }}
+      className="absolute inset-0 h-full w-full bg-black"
     />
   )
 }
