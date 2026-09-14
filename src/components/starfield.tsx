@@ -145,7 +145,5 @@ export function Starfield({ hyperspace }: StarfieldProps) {
     return init(canvas)
   })
 
-  return (
-    <canvas ref={canvasRef} className={classNames.starfieldCanvas} />
-  )
+  return <canvas ref={canvasRef} className={classNames.starfieldCanvas} />
 }
