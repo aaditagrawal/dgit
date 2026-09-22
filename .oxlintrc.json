@@ -37,10 +37,7 @@
       "linkComponents": [
         {
           "name": "Link",
-          "linkAttribute": [
-            "href",
-            "to"
-          ]
+          "linkAttribute": ["href", "to"]
         }
       ]
     },
@@ -52,6 +49,7 @@
     }
   },
   "rules": {
+    "react/refs": "warn",
     "react/react-in-jsx-scope": "off",
     "react/jsx-key": "error",
     "react/no-unescaped-entities": "warn",
