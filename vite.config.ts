@@ -63,7 +63,10 @@ const config = defineConfig({
           sourceMaps: true,
         })
         if (!result?.code) return
-        return { code: result.code, map: result.map }
+        return {
+          code: result.code,
+          map: result.map ? JSON.stringify(result.map) : null,
+        }
       },
     },
     tanstackStart(),
