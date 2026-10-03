@@ -1,6 +1,7 @@
-import { gunzipSync } from "fflate"
+import { execFileSync } from "node:child_process"
+import { gunzipSync, Unzip, UnzipInflate } from "fflate"
 import { describe, expect, it, vi } from "vitest"
-import { createTarGz } from "./archive"
+import { createTarGz, createZip } from "./archive"
 
 describe("createTarGz", () => {
   it("writes aligned entries, checksums, and zero padding without changing inputs", () => {
@@ -48,5 +49,50 @@ describe("createTarGz", () => {
 
   it("encodes an empty archive as two zero blocks", () => {
     expect(gunzipSync(createTarGz(new Map()))).toEqual(new Uint8Array(1024))
+  })
+})
+
+describe("archive filenames", () => {
+  it("round trips a root __proto__ ZIP member", () => {
+    const data = new Uint8Array([1, 2, 3])
+    const extracted = new Map<string, Uint8Array>()
+    const unzip = new Unzip((file) => {
+      file.ondata = (error, chunk) => {
+        if (error) throw error
+        extracted.set(file.name, chunk)
+      }
+      file.start()
+    })
+    unzip.register(UnzipInflate)
+    unzip.push(createZip(new Map([["__proto__", data]])), true)
+    expect([...extracted.keys()]).toEqual(["__proto__"])
+    expect(extracted.get("__proto__")).toEqual(data)
+  })
+
+  it("preserves colliding long and Unicode TAR paths with a standard reader", () => {
+    const names = [
+      `${"a".repeat(100)}1`,
+      `${"a".repeat(100)}2`,
+      `${"目录/".repeat(30)}文档.typ`,
+    ]
+    const files = new Map(
+      names.map((name, index) => [name, new Uint8Array([index + 1])])
+    )
+    const archive = createTarGz(files)
+    const listed = execFileSync(
+      "tar",
+      ["-tzf", "-", "--quoting-style=literal"],
+      { input: archive }
+    )
+      .toString()
+      .trim()
+      .split("\n")
+    expect(listed).toEqual(names)
+    for (const [name, bytes] of files) {
+      const extracted = execFileSync("tar", ["-xOzf", "-", "--", name], {
+        input: archive,
+      })
+      expect(new Uint8Array(extracted)).toEqual(bytes)
+    }
   })
 })

@@ -18,7 +18,7 @@ No server processing. No backend. Everything runs in your browser.
 
 ## Options
 
-- **Format**: ZIP (default) or TAR.GZI 
+- **Format**: ZIP (default) or TAR.GZ
 - **Full history**: Off by default (shallow clone, depth 1). Toggle on to include the entire git history.
 
 ## Development
@@ -30,4 +30,4 @@ bun run dev
 
 ## Stack
 
-TanStack Start, React 19, Tailwind CSS v4, shadcn/ui
+TanStack Start, React 19, StyleX, shadcn/ui

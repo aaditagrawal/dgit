@@ -54,7 +54,24 @@ function friendlyError(message: string): string {
   return message
 }
 
-export function useClone() {
+export type CloneDependencies = {
+  cloneAndCollect: typeof cloneAndCollect
+  createTarGz: typeof createTarGz
+  createZip: typeof createZip
+  triggerDownload: typeof triggerDownload
+}
+const defaultDependencies: CloneDependencies = {
+  cloneAndCollect,
+  createTarGz,
+  createZip,
+  triggerDownload,
+}
+
+export function useClone(
+  dependencies: CloneDependencies = defaultDependencies
+) {
+  const { cloneAndCollect, createTarGz, createZip, triggerDownload } =
+    dependencies
   const [status, setStatus] = useState<CloneStatus>({
     state: "idle",
     progress: null,
@@ -125,17 +142,6 @@ export function useClone() {
           error: null,
           repoName: downloadName,
         })
-
-        setTimeout(() => {
-          if (!abortRef.current) {
-            setStatus({
-              state: "idle",
-              progress: null,
-              error: null,
-              repoName: null,
-            })
-          }
-        }, 8000)
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "An unknown error occurred"
@@ -148,12 +154,23 @@ export function useClone() {
         })
       }
     },
-    []
+    [cloneAndCollect, createTarGz, createZip, triggerDownload]
   )
 
   const startDownload = useCallback(
     (rawUrl: string, options: CloneDownloadOptions) => {
-      const parsed = parseRepoUrl(rawUrl)
+      let parsed: ParsedRepo
+      try {
+        parsed = parseRepoUrl(rawUrl)
+      } catch (err) {
+        setStatus({
+          state: "error",
+          progress: null,
+          repoName: null,
+          error: err instanceof Error ? err.message : "Invalid repository URL",
+        })
+        return
+      }
 
       if (parsed.subpath) {
         setSubpathPrompt({

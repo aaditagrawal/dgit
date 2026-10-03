@@ -5,7 +5,6 @@
     ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
     :root,
     :host {
-      --shimmer-angle: 20deg;
     }
     *,
     :before,
@@ -79,8 +78,6 @@
       --scroll-fade-s: 0px;
       --scroll-fade-e: 0px;
       --scroll-fade-mask: initial;
-      --shimmer-image: initial;
-      --shimmer-text-fill: initial;
     }
   }
 }
@@ -496,26 +493,6 @@
 @property --scroll-fade-mask {
   syntax: "*";
   inherits: false;
-}
-@property --shimmer-angle {
-  syntax: "<angle>";
-  inherits: true;
-  initial-value: 20deg;
-}
-@property --shimmer-image {
-  syntax: "*";
-  inherits: false;
-}
-@property --shimmer-text-fill {
-  syntax: "*";
-  inherits: false;
-}
-@media (prefers-reduced-motion: reduce) {
-  .shimmer {
-    -webkit-text-fill-color: currentColor;
-    background-image: none;
-    animation: none;
-  }
 }
 :root {
   --background: oklch(100% 0 0);
