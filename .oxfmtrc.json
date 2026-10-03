@@ -7,13 +7,6 @@
   "trailingComma": "es5",
   "printWidth": 80,
   "sortPackageJson": false,
-  "sortTailwindcss": {
-    "stylesheet": "src/styles.css",
-    "functions": [
-      "cn",
-      "cva"
-    ]
-  },
   "ignorePatterns": [
     "package-lock.json",
     "pnpm-lock.yaml",

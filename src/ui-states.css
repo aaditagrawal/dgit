@@ -451,11 +451,6 @@
   }
 }
 @media (width>=40rem) {
-  .dgit-dialogMedia:is(:where(.dgit-dialogContent)[data-size="default"] *) {
-    grid-row: span 2 / span 2;
-  }
-}
-@media (width>=40rem) {
   .dgit-dialogHeader:is(:where(.dgit-dialogContent)[data-size="default"] *) {
     place-items: start;
   }
@@ -463,20 +458,6 @@
 @media (width>=40rem) {
   .dgit-dialogHeader:is(:where(.dgit-dialogContent)[data-size="default"] *) {
     text-align: left;
-  }
-}
-@media (width>=40rem) {
-  .dgit-dialogTitle:is(:where(.dgit-dialogContent)[data-size="default"] *):is(
-      :where(.dgit-dialogContent):has([data-slot="alert-dialog-media"]) *
-    ) {
-    grid-column-start: 2;
-  }
-}
-@media (width>=40rem) {
-  .dgit-dialogHeader:is(:where(.dgit-dialogContent)[data-size="default"] *):has(
-      [data-slot="alert-dialog-media"]
-    ) {
-    grid-template-rows: auto 1fr;
   }
 }
 @media (width>=40rem) {
@@ -814,8 +795,4 @@
   :is(.dgit-dialogDescription > *):is(a):hover {
     color: var(--foreground);
   }
-}
-:is(.dgit-dialogMedia > *):is(svg:not([data-stylex-sized])) {
-  width: calc(var(--spacing) * 6);
-  height: calc(var(--spacing) * 6);
 }
