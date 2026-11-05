@@ -8,7 +8,7 @@ import {
   Moon,
   Sun,
   X,
-} from "lucide-react"
+} from "@/components/icons"
 import type { ArchiveFormat } from "@/lib/archive"
 import {
   AlertDialog,
