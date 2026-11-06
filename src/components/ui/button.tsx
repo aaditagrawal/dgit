@@ -3,9 +3,7 @@ import { styles } from "@/ui.stylex"
 import * as React from "react"
 
 import { Slot } from "radix-ui"
-import type { ClassValue } from "clsx"
-
-import { cn } from "@/lib/utils"
+import { cn, type ClassValue } from "@/lib/utils"
 
 const variants = {
   default: styles.buttonDefault,
