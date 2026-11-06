@@ -1,5 +1,5 @@
-// bun scripts/benchmark-rendering.mjs /path/to/clsx/dist/clsx.js /path/to/lucide-react/dist/cjs/lucide-react.js
-// Compares the consumed button/icon rendering from 9c789d5 against the replacements.
+// bun scripts/benchmark-rendering.mjs /path/to/clsx/dist/clsx.js
+// Compares the target 26a00f4 class helper against the replacement with identical icons.
 // Requires Chrome and baseline packages supplied separately, never runtime dependencies.
 import assert from "node:assert/strict"
 import { execFileSync } from "node:child_process"
@@ -9,16 +9,18 @@ import { cpus, tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-const [clsxEntry, lucideEntry] = process.argv.slice(2)
-assert(clsxEntry && lucideEntry, "Pass the two baseline CommonJS entry paths")
+const [clsxEntry] = process.argv.slice(2)
+assert(clsxEntry, "Pass the baseline clsx CommonJS entry path")
 const require = createRequire(import.meta.url)
 const project = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const chrome = process.env.CHROME_BIN || "google-chrome"
-const directory = await mkdtemp(join(tmpdir(), "dgit-render-benchmark-"))
-const samples = Number(process.env.BENCH_SAMPLES || 31)
+const samples = Number(process.env.BENCH_SAMPLES ?? 31)
+assert(
+  Number.isInteger(samples) && samples > 0,
+  "BENCH_SAMPLES must be a positive integer"
+)
 for (const [entry, relativePackage, name, version] of [
   [clsxEntry, "../package.json", "clsx", "2.1.1"],
-  [lucideEntry, "../../package.json", "lucide-react", "1.60.0"],
 ]) {
   const metadata = JSON.parse(
     await readFile(resolve(dirname(entry), relativePackage), "utf8")
@@ -27,14 +29,14 @@ for (const [entry, relativePackage, name, version] of [
   assert.equal(metadata.version, version)
 }
 
+const directory = await mkdtemp(join(tmpdir(), "dgit-render-benchmark-"))
 try {
   const entry = `
 import { createElement } from ${JSON.stringify(require.resolve("react"))};
 import { createRoot } from ${JSON.stringify(require.resolve("react-dom/client"))};
 import { flushSync } from ${JSON.stringify(require.resolve("react-dom"))};
 import { clsx } from ${JSON.stringify(resolve(clsxEntry))};
-import * as before from ${JSON.stringify(resolve(lucideEntry))};
-import * as after from ${JSON.stringify(join(project, "src/components/icons.tsx"))};
+import * as icons from ${JSON.stringify(require.resolve("lucide-react"))};
 import { cn } from ${JSON.stringify(join(project, "src/lib/utils.ts"))};
 const baselineCn = (...inputs) => clsx(inputs);
 const names = ["ChevronDown", "ClipboardPaste", "Download", "Moon", "Sun", "X"];
@@ -42,7 +44,7 @@ const sizes = [12,14,16,16,16,12];
 const host = document.getElementById("host");
 const root = createRoot(host);
 let sink = 0;
-function update(icons, joinClasses, count, index) {
+function update(joinClasses, count, index) {
   flushSync(() => root.render(createElement("button", {
     className: joinClasses("dgit-buttonBase", "dgit-buttonDefault", index % 2 && "dgit-active"),
     disabled: index % 2 === 0,
@@ -57,16 +59,45 @@ function update(icons, joinClasses, count, index) {
   sink += host.firstElementChild.getBoundingClientRect().width;
 }
 const results = [];
+let nested = ["dgit-base"];
+for(let i=0;i<48;i++) nested=[false,nested,undefined];
+const classCases = [
+  ["browser/class-small",["dgit-icon",undefined],400000],
+  ["browser/class-button",["compiled-stylex","dgit-buttonBase","dgit-buttonDefault","dgit-buttonSizeSm",false,undefined,"dgit-override"],200000],
+  ["browser/class-large",Array.from({length:128},(_,i)=>[i%2?"dgit-active":false,"dgit-item"]),4000],
+  ["browser/class-nested",nested,10000],
+  ["browser/class-maps",["base",{active:true,absent:false,pending:1},{inherited:[]},"override"],100000]
+];
+for(const [name,values,iterations] of classCases){
+  if(cn(...values)!==baselineCn(...values)) throw Error("Changed classes");
+  const timings=[[],[]];
+  for(let pair=0;pair<6+${samples};pair++) for(const side of pair%2?[1,0]:[0,1]) {
+    const joinClasses=side?cn:baselineCn;
+    const start=performance.now();
+    for(let i=0;i<iterations;i++) sink+=joinClasses(...values).length;
+    if(pair>=6) timings[side].push((performance.now()-start)*1e6/iterations);
+  }
+  const stats=values=>{
+    const sorted=[...values].sort((a,b)=>a-b);
+    return {median:sorted[Math.ceil(sorted.length*.5)-1],p95:sorted[Math.ceil(sorted.length*.95)-1]};
+  };
+  results.push({name,iterations,unit:"ns/op",baseline:stats(timings[0]),candidate:stats(timings[1]),samples:timings});
+}
+
 for (const [name, count, iterations] of [["browser/button-one",1,400],["browser/icons-six",6,250],["browser/icons-large",192,12]]) {
   const timings = [[],[]];
   const batch = (side) => {
+    update(side === 0 ? baselineCn : cn, count, -1);
     const start = performance.now();
-    for (let i=0; i<iterations; i++) update(side === 0 ? before : after, side === 0 ? baselineCn : cn, count, i);
+    for (let i=0; i<iterations; i++) update(side === 0 ? baselineCn : cn, count, i);
     return (performance.now() - start) * 1000 / iterations;
   };
   // Both implementations must retain actual CSS dimensions and decorative SVG semantics.
+  let beforeMarkup;
   for (const side of [0,1]) {
-    update(side === 0 ? before : after, side === 0 ? baselineCn : cn, count, 0);
+    update(side === 0 ? baselineCn : cn, count, 0);
+    if(side === 0) beforeMarkup = host.innerHTML;
+    else if(host.innerHTML !== beforeMarkup) throw Error("Changed rendered markup");
     const svgs = [...host.querySelectorAll("svg")];
     if (svgs.length !== count) throw Error("Missing icons");
     svgs.forEach((svg, i) => {
@@ -132,8 +163,8 @@ document.getElementById("benchmark-result").textContent = JSON.stringify({sample
   console.log(
     JSON.stringify(
       {
-        baselineCommit: "9c789d5f34474f6c7572f8e3d6503be048a71c96",
-        baselinePackages: { clsx: "2.1.1", "lucide-react": "1.60.0" },
+        baselineCommit: "26a00f40b25290d2a55d3e55020e0c562f5c6cea",
+        baselinePackages: { clsx: "2.1.1" },
         browser: execFileSync(chrome, ["--version"], {
           encoding: "utf8",
         }).trim(),
@@ -141,7 +172,7 @@ document.getElementById("benchmark-result").textContent = JSON.stringify({sample
         cpu: cpus()[0]?.model,
         ...JSON.parse(match[1]),
         limitations:
-          "Production React DOM updates with forced layout, not compositor paint, hydration or full-app startup. Compilation and process startup excluded. Original icon artwork differs; measured dimensions, accessibility and update counts match. No virtual clock.",
+          "Production React DOM updates with forced layout, not compositor paint, hydration or full-app startup. Compilation and process startup excluded. Both sides use the same retained Lucide icons; markup, dimensions, accessibility and update counts match. No virtual clock.",
       },
       null,
       2

@@ -1,112 +1,69 @@
-// NODE_ENV=production bun scripts/benchmark-dependencies.mjs /path/to/clsx/dist/clsx.js /path/to/lucide-react/dist/cjs/lucide-react.js
-// Baseline: 9c789d5f34474f6c7572f8e3d6503be048a71c96, clsx 2.1.1 and lucide-react 1.60.0.
-// Baseline packages are supplied separately and are never application dependencies.
+// NODE_ENV=production bun scripts/benchmark-dependencies.mjs /path/to/clsx/dist/clsx.js
+// Target baseline: 26a00f40b25290d2a55d3e55020e0c562f5c6cea, clsx 2.1.1.
+// Supply the baseline externally; it is not a direct application dependency.
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
-import Module, { createRequire } from "node:module"
+import { createRequire } from "node:module"
 import { cpus } from "node:os"
 import { dirname, resolve } from "node:path"
 import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { cn } from "../src/lib/utils.ts"
-import * as ownedIcons from "../src/components/icons.tsx"
 
-const [clsxEntry, lucideEntry] = process.argv.slice(2)
-assert(clsxEntry && lucideEntry, "Pass the two baseline CommonJS entry paths")
-const root = resolve(import.meta.dirname, "..")
+const [clsxEntry] = process.argv.slice(2)
+assert(clsxEntry, "Pass the baseline clsx CommonJS entry path")
 assert.equal(
   JSON.parse(
     readFileSync(resolve(dirname(clsxEntry), "../package.json"), "utf8")
   ).version,
   "2.1.1"
 )
-assert.equal(
-  JSON.parse(
-    readFileSync(resolve(dirname(lucideEntry), "../../package.json"), "utf8")
-  ).version,
-  "1.60.0"
-)
-const require = createRequire(import.meta.url)
-const baselineClass = require(resolve(clsxEntry)).clsx
-// Match the committed src/lib/utils.ts wrapper, including its array argument.
-const baselineCn = (...inputs) => baselineClass(inputs)
-// Redirect only the baseline React import to share the renderer's instance.
-const baselineModule = new Module(resolve(lucideEntry))
-baselineModule.filename = resolve(lucideEntry)
-baselineModule.paths = [resolve(root, "node_modules")]
-const baselineSource = readFileSync(lucideEntry, "utf8")
-const reactImport = "require('react')"
-assert(baselineSource.includes(reactImport))
-baselineModule._compile(
-  baselineSource.replace(
-    reactImport,
-    "require(" + JSON.stringify(require.resolve("react")) + ")"
-  ),
-  resolve(lucideEntry)
-)
-const baselineIcons = baselineModule.exports
-const iconNames = [
-  "ChevronDown",
-  "ClipboardPaste",
-  "Download",
-  "Moon",
-  "Sun",
-  "X",
-]
+const clsx = createRequire(import.meta.url)(resolve(clsxEntry)).clsx
+// This is the exact target-branch wrapper, including its extra array argument.
+const baselineCn = (...inputs) => clsx(inputs)
 const samples = Number(process.env.BENCH_SAMPLES ?? 31)
+assert(
+  Number.isInteger(samples) && samples > 0,
+  "BENCH_SAMPLES must be a positive integer"
+)
 const warmups = 6
 const results = []
 let sink = 0
-
-function runBatch(work, iterations) {
-  let bytes = 0
-  for (let i = 0; i < iterations; i++) bytes += work().length
-  sink += bytes
+function batch(work, iterations) {
+  for (let i = 0; i < iterations; i++) sink += work().length
 }
-
 function measure(name, baseline, candidate, iterations) {
-  const before = []
-  const after = []
-  for (let i = 0; i < warmups; i++) {
-    runBatch(baseline, iterations)
-    runBatch(candidate, iterations)
-  }
-  for (let sample = 0; sample < samples; sample++) {
-    const pair =
-      sample % 2 === 0
-        ? [
-            [baseline, before],
-            [candidate, after],
-          ]
-        : [
-            [candidate, after],
-            [baseline, before],
-          ]
-    for (const [work, timings] of pair) {
+  assert.equal(candidate(), baseline(), name)
+  const timings = [[], []]
+  for (let i = 0; i < warmups + samples; i++) {
+    for (const side of i % 2 ? [1, 0] : [0, 1]) {
       const start = performance.now()
-      runBatch(work, iterations)
-      timings.push(((performance.now() - start) * 1e6) / iterations)
+      batch(side ? candidate : baseline, iterations)
+      if (i >= warmups)
+        timings[side].push(((performance.now() - start) * 1e6) / iterations)
     }
   }
-  before.sort((a, b) => a - b)
-  after.sort((a, b) => a - b)
-  const percentile = (times, p) => times[Math.ceil(times.length * p) - 1]
+  const stats = (values) => {
+    const sorted = [...values].sort((a, b) => a - b)
+    return {
+      median: sorted[Math.ceil(samples * 0.5) - 1],
+      p95: sorted[Math.ceil(samples * 0.95) - 1],
+    }
+  }
+  const [before, after] = timings.map(stats)
   results.push({
     name,
     iterations,
     unit: "ns/op",
-    baseline: {
-      median: percentile(before, 0.5),
-      p95: percentile(before, 0.95),
-    },
-    candidate: { median: percentile(after, 0.5), p95: percentile(after, 0.95) },
-    medianRatio: percentile(after, 0.5) / percentile(before, 0.5),
+    baseline: before,
+    candidate: after,
+    medianRatio: after.median / before.median,
+    timings,
   })
 }
-
 let nested = ["dgit-base"]
 for (let i = 0; i < 48; i++) nested = [false, nested, undefined]
-const classCases = [
+const cases = [
   ["class/small", ["dgit-icon", undefined], 400000],
   [
     "class/button",
@@ -130,80 +87,79 @@ const classCases = [
     4000,
   ],
   ["class/nested", nested, 10000],
+  [
+    "class/maps",
+    [
+      "base",
+      { active: true, absent: false, pending: 1 },
+      { inherited: [] },
+      "override",
+    ],
+    100000,
+  ],
 ]
-for (const [name, values, iterations] of classCases) {
-  assert.equal(cn(...values), baselineCn(...values))
+for (const [name, values, iterations] of cases)
   measure(
     name,
     () => baselineCn(...values),
     () => cn(...values),
     iterations
   )
-}
 
-function renderIcons(icons, count, named = false) {
-  return renderToStaticMarkup(
-    createElement(
-      "div",
-      null,
-      Array.from({ length: count }, (_, index) => {
-        const name = iconNames[index % iconNames.length]
-        return createElement(icons[name], {
-          key: index,
-          className: index % 2 ? "dgit-smallIcon" : "dgit-icon",
-          "data-stylex-sized": true,
-          "aria-label": named ? name : undefined,
-        })
-      })
-    )
-  )
-}
-for (const [name, count, named, iterations] of [
-  ["SSR/icons-small", 1, false, 300],
-  ["SSR/icons-six", 6, false, 60],
-  ["SSR/icons-large", 192, false, 2],
-  ["SSR/icons-named", 6, true, 60],
-]) {
-  measure(
-    name,
-    () => renderIcons(baselineIcons, count, named),
-    () => renderIcons(ownedIcons, count, named),
-    iterations
-  )
-}
-
-const buttonClasses = classCases[1][1]
-function renderButton(joinClasses, icons) {
+// Differential fixtures include empty keys, prototype keys, primitives and nesting.
+const atoms = [
+  "",
+  "a",
+  " b ",
+  0,
+  1,
+  NaN,
+  Infinity,
+  null,
+  undefined,
+  true,
+  false,
+  1n,
+  {},
+  { "": true },
+  { "": true, x: true },
+  { x: true, "": true },
+  ["a", false],
+  Object.assign(Object.create({ inherited: true }), { own: true }),
+]
+let comparisons = 0
+for (const a of atoms)
+  for (const b of atoms)
+    for (const c of [false, [a, b]]) {
+      assert.equal(cn(a, b, c), baselineCn(a, b, c))
+      comparisons++
+    }
+function renderButton(joinClasses) {
   return renderToStaticMarkup(
     createElement(
       "button",
       {
-        className: joinClasses(...buttonClasses),
+        className: joinClasses(...cases[1][1]),
         disabled: false,
         "aria-label": "Download repository",
       },
-      createElement(icons.Download, {
-        className: "dgit-icon",
-        "data-stylex-sized": true,
-      }),
       "Download"
     )
   )
 }
 measure(
-  "SSR/button-integration",
-  () => renderButton(baselineCn, baselineIcons),
-  () => renderButton(cn, ownedIcons),
-  300
+  "SSR/button",
+  () => renderButton(baselineCn),
+  () => renderButton(cn),
+  2000
 )
-
 console.log(
   JSON.stringify(
     {
-      baselineCommit: "9c789d5f34474f6c7572f8e3d6503be048a71c96",
-      baselinePackages: { clsx: "2.1.1", "lucide-react": "1.60.0" },
+      baselineCommit: "26a00f40b25290d2a55d3e55020e0c562f5c6cea",
+      baselinePackage: "clsx@2.1.1",
       runtime: process.versions,
-      nodeEnv: process.env.NODE_ENV ?? "development",
+      nodeEnv: process.env.NODE_ENV,
       machine: {
         cpu: cpus()[0]?.model,
         platform: process.platform,
@@ -212,10 +168,11 @@ console.log(
       samples,
       warmups,
       order: "alternating baseline/candidate",
+      comparisons,
       results,
       sink,
       limitations:
-        "Local Bun microbenchmarks and React SSR only; browser paint, hydration, network and full-app startup are not measured. Icon artwork differs, while dimensions, roles and call counts are preserved.",
+        "Steady-state class composition and React SSR, excluding startup, compilation, install and network. Browser updates are measured separately.",
     },
     null,
     2
