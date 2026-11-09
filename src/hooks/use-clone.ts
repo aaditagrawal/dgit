@@ -1,30 +1,16 @@
 import { useCallback, useRef, useState } from "react"
-import type { ArchiveFormat } from "@/lib/archive"
-import type { CloneProgress } from "@/lib/git"
 import type { ParsedRepo } from "@/lib/parse-url"
-import { createTarGz, createZip, triggerDownload } from "@/lib/archive"
-import { cloneAndCollect } from "@/lib/git"
+import {
+  IDLE_PHASE,
+  isDownloadBusy,
+  reduceClone,
+  type CloneDownloadOptions,
+  type CloneEvent,
+  type ClonePhase,
+} from "@/lib/clone-machine"
 import { parseRepoUrl } from "@/lib/parse-url"
 
-export type CloneState = "idle" | "cloning" | "archiving" | "done" | "error"
-
-export type CloneStatus = {
-  state: CloneState
-  progress: CloneProgress | null
-  error: string | null
-  repoName: string | null
-}
-
-export type CloneDownloadOptions = {
-  shallow: boolean
-  format: ArchiveFormat
-}
-
-export type SubpathPrompt = {
-  subpath: string
-  repoName: string
-  resolve: (choice: "subfolder" | "full") => void
-}
+export type { CloneDownloadOptions, ClonePhase }
 
 function friendlyError(message: string): string {
   if (
@@ -55,148 +41,151 @@ function friendlyError(message: string): string {
 }
 
 export type CloneDependencies = {
-  cloneAndCollect: typeof cloneAndCollect
-  createTarGz: typeof createTarGz
-  createZip: typeof createZip
-  triggerDownload: typeof triggerDownload
-}
-const defaultDependencies: CloneDependencies = {
-  cloneAndCollect,
-  createTarGz,
-  createZip,
-  triggerDownload,
+  cloneAndCollect: typeof import("@/lib/git").cloneAndCollect
+  createTarGz: typeof import("@/lib/archive").createTarGz
+  createZip: typeof import("@/lib/archive").createZip
+  triggerDownload: typeof import("@/lib/archive").triggerDownload
 }
 
-export function useClone(
-  dependencies: CloneDependencies = defaultDependencies
-) {
-  const { cloneAndCollect, createTarGz, createZip, triggerDownload } =
-    dependencies
-  const [status, setStatus] = useState<CloneStatus>({
-    state: "idle",
-    progress: null,
-    error: null,
-    repoName: null,
-  })
-  const [subpathPrompt, setSubpathPrompt] = useState<SubpathPrompt | null>(null)
-  const abortRef = useRef(false)
+let runtime: Promise<CloneDependencies> | null = null
 
-  const executeDownload = useCallback(
+/** Load the archive and git engines. Safe to call more than once. */
+export function preloadDownloadRuntime(): Promise<CloneDependencies> {
+  runtime ??= (async () => {
+    const gitPromise = import("@/lib/git")
+    const archivePromise = import("@/lib/archive")
+    const git = await gitPromise
+    const warm = git.preloadCloneRuntime()
+    const archive = await archivePromise
+    await warm
+    return {
+      cloneAndCollect: git.cloneAndCollect,
+      createTarGz: archive.createTarGz,
+      createZip: archive.createZip,
+      triggerDownload: archive.triggerDownload,
+    }
+  })()
+  return runtime
+}
+
+export function useClone(dependencies?: CloneDependencies) {
+  const [phase, setPhase] = useState<ClonePhase>(IDLE_PHASE)
+  const phaseRef = useRef<ClonePhase>(IDLE_PHASE)
+  const generationRef = useRef(0)
+
+  const dispatch = useCallback((event: CloneEvent) => {
+    setPhase((current) => {
+      const next = reduceClone(current, event)
+      phaseRef.current = next
+      return next
+    })
+  }, [])
+
+  const runDownload = useCallback(
     async (
       parsed: ParsedRepo,
       options: CloneDownloadOptions,
       subpath: string | null
     ) => {
-      abortRef.current = false
-      setStatus({
-        state: "cloning",
-        progress: null,
-        error: null,
-        repoName: null,
-      })
+      const generation = generationRef.current + 1
+      generationRef.current = generation
+      dispatch({ type: "begin", generation })
 
       try {
+        const tools = dependencies ?? (await preloadDownloadRuntime())
         const downloadName = subpath
           ? (subpath.split("/").pop() ?? parsed.repoName)
           : parsed.repoName
 
-        const files = await cloneAndCollect({
+        const files = await tools.cloneAndCollect({
           url: parsed.url,
           shallow: options.shallow,
           subpath,
           onProgress(progress) {
-            if (!abortRef.current) {
-              setStatus((prev) => ({ ...prev, progress }))
-            }
+            dispatch({ type: "progress", generation, progress })
           },
         })
 
-        // oxlint-disable-next-line typescript/no-unnecessary-condition -- ref can be mutated concurrently
-        if (abortRef.current) return
+        if (generationRef.current !== generation) return
 
-        setStatus({
-          state: "archiving",
-          progress: null,
-          error: null,
-          repoName: downloadName,
-        })
+        dispatch({ type: "archive", generation, repoName: downloadName })
 
         let data: Uint8Array
         let filename: string
         let mimeType: string
 
         if (options.format === "tar.gz") {
-          data = createTarGz(files)
+          data = tools.createTarGz(files)
           filename = `${downloadName}.tar.gz`
           mimeType = "application/gzip"
         } else {
-          data = createZip(files)
+          data = tools.createZip(files)
           filename = `${downloadName}.zip`
           mimeType = "application/zip"
         }
 
-        triggerDownload(data, filename, mimeType)
-        setStatus({
-          state: "done",
-          progress: null,
-          error: null,
-          repoName: downloadName,
-        })
+        if (generationRef.current !== generation) return
+
+        tools.triggerDownload(data, filename, mimeType)
+        dispatch({ type: "finish", generation, repoName: downloadName })
       } catch (err) {
+        if (generationRef.current !== generation) return
         const message =
           err instanceof Error ? err.message : "An unknown error occurred"
-
-        setStatus({
-          state: "error",
-          progress: null,
-          error: friendlyError(message),
-          repoName: null,
-        })
+        dispatch({ type: "fail", generation, error: friendlyError(message) })
       }
     },
-    [cloneAndCollect, createTarGz, createZip, triggerDownload]
+    [dependencies, dispatch]
   )
 
   const startDownload = useCallback(
     (rawUrl: string, options: CloneDownloadOptions) => {
+      if (isDownloadBusy(phaseRef.current)) return
+
       let parsed: ParsedRepo
       try {
         parsed = parseRepoUrl(rawUrl)
       } catch (err) {
-        setStatus({
-          state: "error",
-          progress: null,
-          repoName: null,
+        dispatch({
+          type: "reject",
           error: err instanceof Error ? err.message : "Invalid repository URL",
         })
         return
       }
 
       if (parsed.subpath) {
-        setSubpathPrompt({
+        dispatch({
+          type: "confirm",
           subpath: parsed.subpath,
           repoName: parsed.repoName,
-          resolve(choice) {
-            setSubpathPrompt(null)
-            executeDownload(
-              parsed,
-              options,
-              choice === "subfolder" ? parsed.subpath : null
-            )
-          },
+          parsed,
+          options,
         })
-      } else {
-        executeDownload(parsed, options, null)
+        return
       }
+
+      void runDownload(parsed, options, null)
     },
-    [executeDownload]
+    [dispatch, runDownload]
+  )
+
+  const chooseDownload = useCallback(
+    (choice: "subfolder" | "full") => {
+      const current = phaseRef.current
+      if (current.state !== "confirming") return
+      void runDownload(
+        current.parsed,
+        current.options,
+        choice === "subfolder" ? current.subpath : null
+      )
+    },
+    [runDownload]
   )
 
   const reset = useCallback(() => {
-    abortRef.current = true
-    setSubpathPrompt(null)
-    setStatus({ state: "idle", progress: null, error: null, repoName: null })
-  }, [])
+    generationRef.current += 1
+    dispatch({ type: "reset" })
+  }, [dispatch])
 
-  return { status, subpathPrompt, startDownload, reset }
+  return { phase, startDownload, chooseDownload, reset }
 }

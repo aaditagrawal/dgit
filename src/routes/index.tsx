@@ -1,6 +1,13 @@
 import { classNames, styles } from "@/ui.stylex"
 import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
+import {
+  lazy,
+  Suspense,
+  startTransition,
+  useCallback,
+  useEffect,
+  useState,
+} from "react"
 import {
   ChevronDown,
   ClipboardPaste,
@@ -29,9 +36,20 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { Starfield } from "@/components/starfield"
-import { useClone } from "@/hooks/use-clone"
+import { preloadDownloadRuntime, useClone } from "@/hooks/use-clone"
 import { useTheme } from "@/hooks/use-theme"
+import { scheduleIdle } from "@/lib/schedule-idle"
+import {
+  isDownloadBusy,
+  progressPercent,
+  type ClonePhase,
+} from "@/lib/clone-machine"
+
+const Starfield = lazy(() =>
+  import("@/components/starfield").then((module) => ({
+    default: module.Starfield,
+  }))
+)
 
 export const Route = createFileRoute("/")({ component: App })
 
@@ -39,10 +57,28 @@ function App() {
   const [url, setUrl] = useState("")
   const [shallow, setShallow] = useState(true)
   const [format, setFormat] = useState<ArchiveFormat>("zip")
-  const { status, subpathPrompt, startDownload, reset } = useClone()
+  const { phase, startDownload, chooseDownload, reset } = useClone()
   const { theme, toggleTheme } = useTheme()
 
-  const isActive = status.state === "cloning" || status.state === "archiving"
+  const isActive = isDownloadBusy(phase)
+  const prompt = phase.state === "confirming" ? phase : null
+  const chooseFull = useCallback(() => chooseDownload("full"), [chooseDownload])
+  const chooseSubfolder = useCallback(
+    () => chooseDownload("subfolder"),
+    [chooseDownload]
+  )
+  const actionLabel = downloadActionLabel(phase)
+
+  useEffect(() => scheduleIdle(() => void preloadDownloadRuntime()), [])
+
+  const handleUrlChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value
+      setUrl(value)
+      if (value !== "") void preloadDownloadRuntime()
+    },
+    []
+  )
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -92,7 +128,7 @@ function App() {
                 type="text"
                 placeholder="https://github.com/user/repo"
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={handleUrlChange}
                 disabled={isActive}
                 xstyle={styles.repositoryInput}
                 className="dgit-repositoryInput"
@@ -112,11 +148,20 @@ function App() {
                 />
               </Button>
             </div>
-            <Button type="submit" disabled={isActive || !url.trim()}>
-              <Download data-stylex-sized className={classNames.icon} />
-              {isActive ? "..." : "Download"}
+            <Button
+              type="submit"
+              disabled={isActive || !url.trim()}
+              aria-busy={isActive}
+              className="dgit-downloadButton"
+            >
+              {isActive ? null : (
+                <Download data-stylex-sized className={classNames.icon} />
+              )}
+              {actionLabel}
             </Button>
           </form>
+
+          <StatusDisplay phase={phase} onDismissError={reset} />
 
           <Collapsible>
             <CollapsibleTrigger className={classNames.settingsToggle}>
@@ -185,46 +230,30 @@ function App() {
               </div>
             </CollapsibleContent>
           </Collapsible>
-
-          <StatusDisplay
-            state={status.state}
-            progress={status.progress}
-            error={status.error}
-            repoName={status.repoName}
-            onDismissError={reset}
-          />
         </div>
       </div>
 
-      {/* Right panel: Starfield */}
       <div className={classNames.starPanel}>
-        <Starfield hyperspace={isActive} />
+        <IdleStarfield hyperspace={isActive} />
       </div>
 
       {/* Subfolder prompt */}
-      <AlertDialog open={subpathPrompt !== null}>
+      <AlertDialog open={prompt !== null}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Subfolder detected</AlertDialogTitle>
             <AlertDialogDescription className={classNames.dialogOverflow}>
               Your URL points to{" "}
-              <span className={classNames.subpath}>
-                {subpathPrompt?.subpath}
-              </span>{" "}
-              in{" "}
-              <span className={classNames.repoName}>
-                {subpathPrompt?.repoName}
-              </span>
-              . Download just this folder, or the entire repository?
+              <span className={classNames.subpath}>{prompt?.subpath}</span> in{" "}
+              <span className={classNames.repoName}>{prompt?.repoName}</span>.
+              Download just this folder, or the entire repository?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => subpathPrompt?.resolve("full")}>
+            <AlertDialogCancel onClick={chooseFull}>
               Full repository
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => subpathPrompt?.resolve("subfolder")}
-            >
+            <AlertDialogAction onClick={chooseSubfolder}>
               Just subfolder
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -234,61 +263,105 @@ function App() {
   )
 }
 
+function IdleStarfield({ hyperspace }: { hyperspace: boolean }) {
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    let active = true
+    const cancel = scheduleIdle(() => {
+      if (!active) return
+      startTransition(() => setShow(true))
+    })
+    return () => {
+      active = false
+      cancel()
+    }
+  }, [])
+  if (!show) return null
+  return (
+    <Suspense fallback={null}>
+      <Starfield hyperspace={hyperspace} />
+    </Suspense>
+  )
+}
+
+function DownloadMeter({
+  phase,
+}: {
+  phase: Extract<ClonePhase, { state: "cloning" | "archiving" }>
+}) {
+  const pct =
+    phase.state === "archiving" ? 100 : progressPercent(phase.progress)
+  const detail =
+    phase.state === "archiving"
+      ? "creating archive"
+      : (phase.progress?.phase ?? "connecting")
+  const prefix = phase.state === "archiving" ? "ARCHIVING" : "CLONING"
+  const indeterminate = pct === null
+  return (
+    <div className="dgit-progressBlock">
+      <div
+        className="dgit-progress"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={indeterminate ? undefined : pct}
+        aria-valuetext={indeterminate ? detail : `${detail} ${pct}%`}
+        aria-label="Download progress"
+      >
+        <div
+          className={
+            indeterminate
+              ? "dgit-progressFill dgit-progressIndeterminate"
+              : "dgit-progressFill"
+          }
+          style={indeterminate ? undefined : { width: `${pct}%` }}
+        />
+      </div>
+      <p className={classNames.smallMuted}>
+        [{prefix}] {detail}
+        {indeterminate ? "" : ` ${pct}%`}
+      </p>
+    </div>
+  )
+}
+
+function downloadActionLabel(phase: ClonePhase): string {
+  if (phase.state === "cloning") {
+    const pct = progressPercent(phase.progress)
+    return pct === null ? "Connecting" : `${pct}%`
+  }
+  if (phase.state === "archiving") return "Archiving"
+  return "Download"
+}
+
 function StatusDisplay({
-  state,
-  progress,
-  error,
-  repoName,
+  phase,
   onDismissError,
 }: {
-  state: string
-  progress: { phase: string; loaded: number; total: number } | null
-  error: string | null
-  repoName: string | null
+  phase: ClonePhase
   onDismissError: () => void
 }) {
-  if (state === "idle") return null
-
-  if (state === "error" && error) {
-    return (
-      <div className={classNames.errorBox}>
-        <span>[ERROR] {error}</span>
-        <button onClick={onDismissError} className={classNames.dismissError}>
-          <X data-stylex-sized className={classNames.smallIcon} />
-        </button>
-      </div>
-    )
+  switch (phase.state) {
+    case "idle":
+    case "confirming":
+      return null
+    case "error":
+      return (
+        <div className={classNames.errorBox}>
+          <span>[ERROR] {phase.error}</span>
+          <button onClick={onDismissError} className={classNames.dismissError}>
+            <X data-stylex-sized className={classNames.smallIcon} />
+          </button>
+        </div>
+      )
+    case "cloning":
+    case "archiving":
+      return <DownloadMeter phase={phase} />
+    case "done":
+      return (
+        <div className={classNames.smallMuted}>
+          [DONE] downloaded {phase.repoName}
+        </div>
+      )
   }
-
-  if (state === "cloning") {
-    const phaseText = progress?.phase ?? "connecting"
-    const pct =
-      progress && progress.total > 0
-        ? Math.round((progress.loaded / progress.total) * 100)
-        : null
-    return (
-      <div className={classNames.smallMuted}>
-        [CLONING] {phaseText}
-        {pct !== null ? ` ${pct}%` : ""}
-      </div>
-    )
-  }
-
-  if (state === "archiving") {
-    return (
-      <div className={classNames.smallMuted}>
-        [ARCHIVING] creating archive...
-      </div>
-    )
-  }
-
-  if (state === "done") {
-    return (
-      <div className={classNames.smallMuted}>
-        [DONE] downloaded {repoName ?? "repository"}
-      </div>
-    )
-  }
-
-  return null
 }
