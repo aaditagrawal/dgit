@@ -1,11 +1,17 @@
 import { classNames, styles } from "@/ui.stylex"
 import { createFileRoute } from "@tanstack/react-router"
-import { useCallback, useState } from "react"
+import {
+  lazy,
+  Suspense,
+  startTransition,
+  useCallback,
+  useEffect,
+  useState,
+} from "react"
 import {
   ChevronDown,
   ClipboardPaste,
   Download,
-  LoaderCircle,
   Moon,
   Sun,
   X,
@@ -30,14 +36,20 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { Starfield } from "@/components/starfield"
-import { useClone } from "@/hooks/use-clone"
+import { preloadDownloadRuntime, useClone } from "@/hooks/use-clone"
 import { useTheme } from "@/hooks/use-theme"
+import { scheduleIdle } from "@/lib/schedule-idle"
 import {
   isDownloadBusy,
   progressPercent,
   type ClonePhase,
 } from "@/lib/clone-machine"
+
+const Starfield = lazy(() =>
+  import("@/components/starfield").then((module) => ({
+    default: module.Starfield,
+  }))
+)
 
 export const Route = createFileRoute("/")({ component: App })
 
@@ -54,6 +66,18 @@ function App() {
   const chooseSubfolder = useCallback(
     () => chooseDownload("subfolder"),
     [chooseDownload]
+  )
+  const actionLabel = downloadActionLabel(phase)
+
+  useEffect(() => scheduleIdle(() => void preloadDownloadRuntime()), [])
+
+  const handleUrlChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value
+      setUrl(value)
+      if (value !== "") void preloadDownloadRuntime()
+    },
+    []
   )
 
   function handleSubmit(e: React.FormEvent) {
@@ -104,7 +128,7 @@ function App() {
                 type="text"
                 placeholder="https://github.com/user/repo"
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={handleUrlChange}
                 disabled={isActive}
                 xstyle={styles.repositoryInput}
                 className="dgit-repositoryInput"
@@ -128,19 +152,16 @@ function App() {
               type="submit"
               disabled={isActive || !url.trim()}
               aria-busy={isActive}
+              className="dgit-downloadButton"
             >
-              {isActive ? (
-                <LoaderCircle
-                  data-stylex-sized
-                  className={`${classNames.icon} dgit-spin`}
-                  aria-hidden="true"
-                />
-              ) : (
+              {isActive ? null : (
                 <Download data-stylex-sized className={classNames.icon} />
               )}
-              Download
+              {actionLabel}
             </Button>
           </form>
+
+          <StatusDisplay phase={phase} onDismissError={reset} />
 
           <Collapsible>
             <CollapsibleTrigger className={classNames.settingsToggle}>
@@ -209,14 +230,11 @@ function App() {
               </div>
             </CollapsibleContent>
           </Collapsible>
-
-          <StatusDisplay phase={phase} onDismissError={reset} />
         </div>
       </div>
 
-      {/* Right panel: Starfield */}
       <div className={classNames.starPanel}>
-        <Starfield hyperspace={isActive} />
+        <IdleStarfield hyperspace={isActive} />
       </div>
 
       {/* Subfolder prompt */}
@@ -245,6 +263,77 @@ function App() {
   )
 }
 
+function IdleStarfield({ hyperspace }: { hyperspace: boolean }) {
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    let active = true
+    const cancel = scheduleIdle(() => {
+      if (!active) return
+      startTransition(() => setShow(true))
+    })
+    return () => {
+      active = false
+      cancel()
+    }
+  }, [])
+  if (!show) return null
+  return (
+    <Suspense fallback={null}>
+      <Starfield hyperspace={hyperspace} />
+    </Suspense>
+  )
+}
+
+function DownloadMeter({
+  phase,
+}: {
+  phase: Extract<ClonePhase, { state: "cloning" | "archiving" }>
+}) {
+  const pct =
+    phase.state === "archiving" ? 100 : progressPercent(phase.progress)
+  const detail =
+    phase.state === "archiving"
+      ? "creating archive"
+      : (phase.progress?.phase ?? "connecting")
+  const prefix = phase.state === "archiving" ? "ARCHIVING" : "CLONING"
+  const indeterminate = pct === null
+  return (
+    <div className="dgit-progressBlock">
+      <div
+        className="dgit-progress"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={indeterminate ? undefined : pct}
+        aria-valuetext={indeterminate ? detail : `${detail} ${pct}%`}
+        aria-label="Download progress"
+      >
+        <div
+          className={
+            indeterminate
+              ? "dgit-progressFill dgit-progressIndeterminate"
+              : "dgit-progressFill"
+          }
+          style={indeterminate ? undefined : { width: `${pct}%` }}
+        />
+      </div>
+      <p className={classNames.smallMuted}>
+        [{prefix}] {detail}
+        {indeterminate ? "" : ` ${pct}%`}
+      </p>
+    </div>
+  )
+}
+
+function downloadActionLabel(phase: ClonePhase): string {
+  if (phase.state === "cloning") {
+    const pct = progressPercent(phase.progress)
+    return pct === null ? "Connecting" : `${pct}%`
+  }
+  if (phase.state === "archiving") return "Archiving"
+  return "Download"
+}
+
 function StatusDisplay({
   phase,
   onDismissError,
@@ -265,30 +354,9 @@ function StatusDisplay({
           </button>
         </div>
       )
-    case "cloning": {
-      const pct = progressPercent(phase.progress)
-      const phaseText = phase.progress?.phase ?? "connecting"
-      return (
-        <div className={`${classNames.smallMuted} dgit-statusLine`}>
-          <span
-            className="dgit-spinner dgit-spinnerInline"
-            aria-hidden="true"
-          />
-          [CLONING] {phaseText}
-          {pct !== null ? ` ${pct}%` : ""}
-        </div>
-      )
-    }
+    case "cloning":
     case "archiving":
-      return (
-        <div className={`${classNames.smallMuted} dgit-statusLine`}>
-          <span
-            className="dgit-spinner dgit-spinnerInline"
-            aria-hidden="true"
-          />
-          [ARCHIVING] creating archive...
-        </div>
-      )
+      return <DownloadMeter phase={phase} />
     case "done":
       return (
         <div className={classNames.smallMuted}>

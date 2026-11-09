@@ -780,9 +780,12 @@
     filter: blur(var(--tw-enter-blur, 0));
   }
 }
-@keyframes dgit-spin {
+@keyframes dgit-progress {
+  from {
+    transform: translateX(-120%);
+  }
   to {
-    transform: rotate(360deg);
+    transform: translateX(320%);
   }
 }
 @keyframes exit {

@@ -152,6 +152,7 @@ export const styles = stylex.create({
     minHeight: "0",
     flex: "1",
     overflow: "hidden",
+    backgroundColor: "black",
   },
   dialogOverflow: {
     overflow: "hidden",

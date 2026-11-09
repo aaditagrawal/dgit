@@ -8,8 +8,6 @@ import {
   type CloneEvent,
   type ClonePhase,
 } from "@/lib/clone-machine"
-import { createTarGz, createZip, triggerDownload } from "@/lib/archive"
-import { cloneAndCollect } from "@/lib/git"
 import { parseRepoUrl } from "@/lib/parse-url"
 
 export type { CloneDownloadOptions, ClonePhase }
@@ -43,30 +41,34 @@ function friendlyError(message: string): string {
 }
 
 export type CloneDependencies = {
-  cloneAndCollect: typeof cloneAndCollect
-  createTarGz: typeof createTarGz
-  createZip: typeof createZip
-  triggerDownload: typeof triggerDownload
+  cloneAndCollect: typeof import("@/lib/git").cloneAndCollect
+  createTarGz: typeof import("@/lib/archive").createTarGz
+  createZip: typeof import("@/lib/archive").createZip
+  triggerDownload: typeof import("@/lib/archive").triggerDownload
 }
 
-const defaultDependencies: CloneDependencies = {
-  cloneAndCollect,
-  createTarGz,
-  createZip,
-  triggerDownload,
+let runtime: Promise<CloneDependencies> | null = null
+
+/** Load the archive and git engines. Safe to call more than once. */
+export function preloadDownloadRuntime(): Promise<CloneDependencies> {
+  runtime ??= (async () => {
+    const gitPromise = import("@/lib/git")
+    const archivePromise = import("@/lib/archive")
+    const git = await gitPromise
+    const warm = git.preloadCloneRuntime()
+    const archive = await archivePromise
+    await warm
+    return {
+      cloneAndCollect: git.cloneAndCollect,
+      createTarGz: archive.createTarGz,
+      createZip: archive.createZip,
+      triggerDownload: archive.triggerDownload,
+    }
+  })()
+  return runtime
 }
 
-function waitForPaint(): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0)
-  })
-}
-
-export function useClone(
-  dependencies: CloneDependencies = defaultDependencies
-) {
-  const { cloneAndCollect, createTarGz, createZip, triggerDownload } =
-    dependencies
+export function useClone(dependencies?: CloneDependencies) {
   const [phase, setPhase] = useState<ClonePhase>(IDLE_PHASE)
   const phaseRef = useRef<ClonePhase>(IDLE_PHASE)
   const generationRef = useRef(0)
@@ -90,11 +92,12 @@ export function useClone(
       dispatch({ type: "begin", generation })
 
       try {
+        const tools = dependencies ?? (await preloadDownloadRuntime())
         const downloadName = subpath
           ? (subpath.split("/").pop() ?? parsed.repoName)
           : parsed.repoName
 
-        const files = await cloneAndCollect({
+        const files = await tools.cloneAndCollect({
           url: parsed.url,
           shallow: options.shallow,
           subpath,
@@ -106,27 +109,24 @@ export function useClone(
         if (generationRef.current !== generation) return
 
         dispatch({ type: "archive", generation, repoName: downloadName })
-        // Let the archiving phase paint before the synchronous zip work.
-        await waitForPaint()
-        if (generationRef.current !== generation) return
 
         let data: Uint8Array
         let filename: string
         let mimeType: string
 
         if (options.format === "tar.gz") {
-          data = createTarGz(files)
+          data = tools.createTarGz(files)
           filename = `${downloadName}.tar.gz`
           mimeType = "application/gzip"
         } else {
-          data = createZip(files)
+          data = tools.createZip(files)
           filename = `${downloadName}.zip`
           mimeType = "application/zip"
         }
 
         if (generationRef.current !== generation) return
 
-        triggerDownload(data, filename, mimeType)
+        tools.triggerDownload(data, filename, mimeType)
         dispatch({ type: "finish", generation, repoName: downloadName })
       } catch (err) {
         if (generationRef.current !== generation) return
@@ -135,7 +135,7 @@ export function useClone(
         dispatch({ type: "fail", generation, error: friendlyError(message) })
       }
     },
-    [cloneAndCollect, createTarGz, createZip, dispatch, triggerDownload]
+    [dependencies, dispatch]
   )
 
   const startDownload = useCallback(

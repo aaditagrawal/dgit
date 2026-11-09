@@ -25,13 +25,25 @@ async function ensureBuffer(): Promise<void> {
   })
 }
 
+let warming: Promise<void> | null = null
+
+/** Fetch the git engine before a click so the clone request is not waiting on it. */
+export function preloadCloneRuntime(): Promise<void> {
+  warming ??= (async () => {
+    await ensureBuffer()
+    await Promise.all([
+      import("isomorphic-git"),
+      import("isomorphic-git/http/web"),
+      import("@isomorphic-git/lightning-fs"),
+    ])
+  })()
+  return warming
+}
+
 export async function cloneAndCollect(
   options: CloneOptions
 ): Promise<Map<string, Uint8Array>> {
-  // Buffer must exist before isomorphic-git runs (ESM build checks global Buffer).
-  await ensureBuffer()
-
-  // Dynamic imports to avoid SSR issues - these are browser-only modules
+  await preloadCloneRuntime()
   const [git, { default: http }, { default: LightningFS }] = await Promise.all([
     import("isomorphic-git"),
     import("isomorphic-git/http/web"),
