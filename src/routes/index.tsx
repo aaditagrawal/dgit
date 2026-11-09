@@ -1,10 +1,11 @@
 import { classNames, styles } from "@/ui.stylex"
 import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import {
   ChevronDown,
   ClipboardPaste,
   Download,
+  LoaderCircle,
   Moon,
   Sun,
   X,
@@ -32,6 +33,11 @@ import {
 import { Starfield } from "@/components/starfield"
 import { useClone } from "@/hooks/use-clone"
 import { useTheme } from "@/hooks/use-theme"
+import {
+  isDownloadBusy,
+  progressPercent,
+  type ClonePhase,
+} from "@/lib/clone-machine"
 
 export const Route = createFileRoute("/")({ component: App })
 
@@ -39,10 +45,16 @@ function App() {
   const [url, setUrl] = useState("")
   const [shallow, setShallow] = useState(true)
   const [format, setFormat] = useState<ArchiveFormat>("zip")
-  const { status, subpathPrompt, startDownload, reset } = useClone()
+  const { phase, startDownload, chooseDownload, reset } = useClone()
   const { theme, toggleTheme } = useTheme()
 
-  const isActive = status.state === "cloning" || status.state === "archiving"
+  const isActive = isDownloadBusy(phase)
+  const prompt = phase.state === "confirming" ? phase : null
+  const chooseFull = useCallback(() => chooseDownload("full"), [chooseDownload])
+  const chooseSubfolder = useCallback(
+    () => chooseDownload("subfolder"),
+    [chooseDownload]
+  )
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -112,9 +124,21 @@ function App() {
                 />
               </Button>
             </div>
-            <Button type="submit" disabled={isActive || !url.trim()}>
-              <Download data-stylex-sized className={classNames.icon} />
-              {isActive ? "..." : "Download"}
+            <Button
+              type="submit"
+              disabled={isActive || !url.trim()}
+              aria-busy={isActive}
+            >
+              {isActive ? (
+                <LoaderCircle
+                  data-stylex-sized
+                  className={`${classNames.icon} dgit-spin`}
+                  aria-hidden="true"
+                />
+              ) : (
+                <Download data-stylex-sized className={classNames.icon} />
+              )}
+              Download
             </Button>
           </form>
 
@@ -186,13 +210,7 @@ function App() {
             </CollapsibleContent>
           </Collapsible>
 
-          <StatusDisplay
-            state={status.state}
-            progress={status.progress}
-            error={status.error}
-            repoName={status.repoName}
-            onDismissError={reset}
-          />
+          <StatusDisplay phase={phase} onDismissError={reset} />
         </div>
       </div>
 
@@ -202,29 +220,22 @@ function App() {
       </div>
 
       {/* Subfolder prompt */}
-      <AlertDialog open={subpathPrompt !== null}>
+      <AlertDialog open={prompt !== null}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Subfolder detected</AlertDialogTitle>
             <AlertDialogDescription className={classNames.dialogOverflow}>
               Your URL points to{" "}
-              <span className={classNames.subpath}>
-                {subpathPrompt?.subpath}
-              </span>{" "}
-              in{" "}
-              <span className={classNames.repoName}>
-                {subpathPrompt?.repoName}
-              </span>
-              . Download just this folder, or the entire repository?
+              <span className={classNames.subpath}>{prompt?.subpath}</span> in{" "}
+              <span className={classNames.repoName}>{prompt?.repoName}</span>.
+              Download just this folder, or the entire repository?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => subpathPrompt?.resolve("full")}>
+            <AlertDialogCancel onClick={chooseFull}>
               Full repository
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => subpathPrompt?.resolve("subfolder")}
-            >
+            <AlertDialogAction onClick={chooseSubfolder}>
               Just subfolder
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -235,60 +246,54 @@ function App() {
 }
 
 function StatusDisplay({
-  state,
-  progress,
-  error,
-  repoName,
+  phase,
   onDismissError,
 }: {
-  state: string
-  progress: { phase: string; loaded: number; total: number } | null
-  error: string | null
-  repoName: string | null
+  phase: ClonePhase
   onDismissError: () => void
 }) {
-  if (state === "idle") return null
-
-  if (state === "error" && error) {
-    return (
-      <div className={classNames.errorBox}>
-        <span>[ERROR] {error}</span>
-        <button onClick={onDismissError} className={classNames.dismissError}>
-          <X data-stylex-sized className={classNames.smallIcon} />
-        </button>
-      </div>
-    )
+  switch (phase.state) {
+    case "idle":
+    case "confirming":
+      return null
+    case "error":
+      return (
+        <div className={classNames.errorBox}>
+          <span>[ERROR] {phase.error}</span>
+          <button onClick={onDismissError} className={classNames.dismissError}>
+            <X data-stylex-sized className={classNames.smallIcon} />
+          </button>
+        </div>
+      )
+    case "cloning": {
+      const pct = progressPercent(phase.progress)
+      const phaseText = phase.progress?.phase ?? "connecting"
+      return (
+        <div className={`${classNames.smallMuted} dgit-statusLine`}>
+          <span
+            className="dgit-spinner dgit-spinnerInline"
+            aria-hidden="true"
+          />
+          [CLONING] {phaseText}
+          {pct !== null ? ` ${pct}%` : ""}
+        </div>
+      )
+    }
+    case "archiving":
+      return (
+        <div className={`${classNames.smallMuted} dgit-statusLine`}>
+          <span
+            className="dgit-spinner dgit-spinnerInline"
+            aria-hidden="true"
+          />
+          [ARCHIVING] creating archive...
+        </div>
+      )
+    case "done":
+      return (
+        <div className={classNames.smallMuted}>
+          [DONE] downloaded {phase.repoName}
+        </div>
+      )
   }
-
-  if (state === "cloning") {
-    const phaseText = progress?.phase ?? "connecting"
-    const pct =
-      progress && progress.total > 0
-        ? Math.round((progress.loaded / progress.total) * 100)
-        : null
-    return (
-      <div className={classNames.smallMuted}>
-        [CLONING] {phaseText}
-        {pct !== null ? ` ${pct}%` : ""}
-      </div>
-    )
-  }
-
-  if (state === "archiving") {
-    return (
-      <div className={classNames.smallMuted}>
-        [ARCHIVING] creating archive...
-      </div>
-    )
-  }
-
-  if (state === "done") {
-    return (
-      <div className={classNames.smallMuted}>
-        [DONE] downloaded {repoName ?? "repository"}
-      </div>
-    )
-  }
-
-  return null
 }

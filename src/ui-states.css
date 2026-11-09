@@ -630,14 +630,14 @@
 .dgit-dialogOverlay:where([data-state="open"]),
 .dgit-dialogOverlay:where([data-open]:not([data-open="false"])) {
   animation: enter var(--tw-animation-duration, var(--tw-duration, 0.15s))
-    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
+    var(--tw-ease, var(--default-transition-timing-function)) var(--tw-animation-delay, 0s)
     var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
     var(--tw-animation-fill-mode, none);
 }
 .dgit-dialogContent:where([data-state="open"]),
 .dgit-dialogContent:where([data-open]:not([data-open="false"])) {
   animation: enter var(--tw-animation-duration, var(--tw-duration, 0.15s))
-    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
+    var(--tw-ease, var(--default-transition-timing-function)) var(--tw-animation-delay, 0s)
     var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
     var(--tw-animation-fill-mode, none);
 }
@@ -656,14 +656,14 @@
 .dgit-dialogOverlay:where([data-state="closed"]),
 .dgit-dialogOverlay:where([data-closed]:not([data-closed="false"])) {
   animation: exit var(--tw-animation-duration, var(--tw-duration, 0.15s))
-    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
+    var(--tw-ease, var(--default-transition-timing-function)) var(--tw-animation-delay, 0s)
     var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
     var(--tw-animation-fill-mode, none);
 }
 .dgit-dialogContent:where([data-state="closed"]),
 .dgit-dialogContent:where([data-closed]:not([data-closed="false"])) {
   animation: exit var(--tw-animation-duration, var(--tw-duration, 0.15s))
-    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
+    var(--tw-ease, var(--default-transition-timing-function)) var(--tw-animation-delay, 0s)
     var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
     var(--tw-animation-fill-mode, none);
 }
@@ -795,4 +795,27 @@
   :is(.dgit-dialogDescription > *):is(a):hover {
     color: var(--foreground);
   }
+}
+.dgit-statusLine {
+  display: flex;
+  align-items: center;
+}
+.dgit-spin {
+  animation: dgit-spin 0.45s linear infinite;
+}
+.dgit-spinner {
+  display: inline-block;
+  width: calc(var(--spacing) * 4);
+  height: calc(var(--spacing) * 4);
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  border-top-color: currentcolor;
+  border-radius: 50%;
+  animation: dgit-spin 0.45s linear infinite;
+}
+.dgit-spinnerInline {
+  width: calc(var(--spacing) * 3);
+  height: calc(var(--spacing) * 3);
+  margin-right: calc(var(--spacing) * 1.5);
+  vertical-align: text-bottom;
 }

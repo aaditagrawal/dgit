@@ -392,6 +392,7 @@ export const styles = stylex.create({
     inset: "0",
     height: "100%",
     width: "100%",
+    backgroundColor: "black",
   },
   formatButton: {
     borderStyle: "var(--tw-border-style)",
