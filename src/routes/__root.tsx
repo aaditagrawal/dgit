@@ -1,10 +1,17 @@
 import * as stylex from "@stylexjs/stylex"
 import { styles, classNames } from "@/ui.stylex"
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
-import { TanStackDevtools } from "@tanstack/react-devtools"
+import { lazy, Suspense } from "react"
 
 import appCss from "../styles.css?url"
+
+const RouterDevtools = import.meta.env.DEV
+  ? lazy(() =>
+      import("@/components/router-devtools").then((module) => ({
+        default: module.RouterDevtools,
+      }))
+    )
+  : null
 
 export const Route = createRootRoute({
   notFoundComponent: () => (
@@ -58,17 +65,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        {RouterDevtools ? (
+          <Suspense fallback={null}>
+            <RouterDevtools />
+          </Suspense>
+        ) : null}
         <Scripts />
       </body>
     </html>

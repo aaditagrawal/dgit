@@ -152,6 +152,7 @@ export const styles = stylex.create({
     minHeight: "0",
     flex: "1",
     overflow: "hidden",
+    backgroundColor: "black",
   },
   dialogOverflow: {
     overflow: "hidden",
@@ -392,6 +393,7 @@ export const styles = stylex.create({
     inset: "0",
     height: "100%",
     width: "100%",
+    backgroundColor: "black",
   },
   formatButton: {
     borderStyle: "var(--tw-border-style)",

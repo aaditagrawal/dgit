@@ -105,8 +105,10 @@
     --tracking-tight: -0.025em;
     --leading-relaxed: 1.625;
     --blur-xs: 4px;
-    --default-transition-duration: 0.15s;
-    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    /* Snappy ease-out: feedback starts immediately. UI motion stays under 300ms. */
+    --default-transition-duration: 160ms;
+    --default-transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    --tw-ease: cubic-bezier(0.16, 1, 0.3, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: "JetBrains Mono Variable", monospace;
   }
@@ -776,6 +778,14 @@
       )
       rotate(var(--tw-enter-rotate, 0));
     filter: blur(var(--tw-enter-blur, 0));
+  }
+}
+@keyframes dgit-progress {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(320%);
   }
 }
 @keyframes exit {

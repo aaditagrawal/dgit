@@ -440,58 +440,58 @@
       var(--tw-backdrop-sepia,);
   }
 }
-@media (width>=40rem) {
+@media (width >= 40rem) {
   .dgit-dialogFooter {
     flex-direction: row;
   }
 }
-@media (width>=40rem) {
+@media (width >= 40rem) {
   .dgit-dialogFooter {
     justify-content: flex-end;
   }
 }
-@media (width>=40rem) {
+@media (width >= 40rem) {
   .dgit-dialogHeader:is(:where(.dgit-dialogContent)[data-size="default"] *) {
     place-items: start;
   }
 }
-@media (width>=40rem) {
+@media (width >= 40rem) {
   .dgit-dialogHeader:is(:where(.dgit-dialogContent)[data-size="default"] *) {
     text-align: left;
   }
 }
-@media (width>=40rem) {
+@media (width >= 40rem) {
   .dgit-dialogContent[data-size="default"] {
     max-width: var(--container-sm);
   }
 }
-@media (width>=48rem) {
+@media (width >= 48rem) {
   .dgit-starPanel {
     height: auto;
   }
 }
-@media (width>=48rem) {
+@media (width >= 48rem) {
   .dgit-leftPanel {
     flex: 1;
   }
 }
-@media (width>=48rem) {
+@media (width >= 48rem) {
   .dgit-appShell {
     flex-direction: row;
   }
 }
-@media (width>=48rem) {
+@media (width >= 48rem) {
   .dgit-leftPanel {
     padding: calc(var(--spacing) * 12);
   }
 }
-@media (width>=48rem) {
+@media (width >= 48rem) {
   .dgit-inputBase {
     font-size: var(--text-xs);
     line-height: var(--tw-leading, var(--text-xs--line-height));
   }
 }
-@media (width>=48rem) {
+@media (width >= 48rem) {
   .dgit-dialogDescription {
     text-wrap: pretty;
   }
@@ -630,16 +630,16 @@
 .dgit-dialogOverlay:where([data-state="open"]),
 .dgit-dialogOverlay:where([data-open]:not([data-open="false"])) {
   animation: enter var(--tw-animation-duration, var(--tw-duration, 0.15s))
-    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
-    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
-    var(--tw-animation-fill-mode, none);
+    var(--tw-ease, var(--default-transition-timing-function))
+    var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
 }
 .dgit-dialogContent:where([data-state="open"]),
 .dgit-dialogContent:where([data-open]:not([data-open="false"])) {
   animation: enter var(--tw-animation-duration, var(--tw-duration, 0.15s))
-    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
-    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
-    var(--tw-animation-fill-mode, none);
+    var(--tw-ease, var(--default-transition-timing-function))
+    var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
 }
 .dgit-dialogOverlay:where([data-state="open"]),
 .dgit-dialogOverlay:where([data-open]:not([data-open="false"])) {
@@ -656,16 +656,16 @@
 .dgit-dialogOverlay:where([data-state="closed"]),
 .dgit-dialogOverlay:where([data-closed]:not([data-closed="false"])) {
   animation: exit var(--tw-animation-duration, var(--tw-duration, 0.15s))
-    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
-    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
-    var(--tw-animation-fill-mode, none);
+    var(--tw-ease, var(--default-transition-timing-function))
+    var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
 }
 .dgit-dialogContent:where([data-state="closed"]),
 .dgit-dialogContent:where([data-closed]:not([data-closed="false"])) {
   animation: exit var(--tw-animation-duration, var(--tw-duration, 0.15s))
-    var(--tw-ease, ease) var(--tw-animation-delay, 0s)
-    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
-    var(--tw-animation-fill-mode, none);
+    var(--tw-ease, var(--default-transition-timing-function))
+    var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
 }
 .dgit-dialogOverlay:where([data-state="closed"]),
 .dgit-dialogOverlay:where([data-closed]:not([data-closed="false"])) {
@@ -795,4 +795,29 @@
   :is(.dgit-dialogDescription > *):is(a):hover {
     color: var(--foreground);
   }
+}
+.dgit-downloadButton {
+  min-width: 9rem;
+}
+.dgit-progressBlock {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+}
+.dgit-progress {
+  height: 3px;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--border);
+}
+.dgit-progressFill {
+  height: 100%;
+  width: 0%;
+  background-color: var(--foreground);
+  transition: width 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dgit-progressIndeterminate {
+  width: 35%;
+  transition: none;
+  animation: dgit-progress 0.7s linear infinite;
 }
